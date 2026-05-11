@@ -1734,6 +1734,116 @@ function trackVisitor(){
     });
 }
 
+
+// ============================================================
+// CERVEAU PARTAGÉ — JSONBin.io
+// Synchronise la mémoire IA entre tous les joueurs
+// ============================================================
+const JSONBIN_URL = 'https://api.jsonbin.io/v3/b/6a01c5abadc21f119a838598';
+const JSONBIN_KEY = '$2a$10$skBwdiTeDp3UbVSVRF71/.aoSy7wHan4RMa/MwzEqJ5TctI6csTo6';
+let _brainSyncTimer = null;
+
+function loadSharedBrain(){
+  fetch(JSONBIN_URL+'/latest', {
+    headers: {
+      'X-Master-Key': JSONBIN_KEY,
+      'X-Bin-Meta': 'false'
+    }
+  })
+  .then(r=>r.json())
+  .then(data=>{
+    if(data && data.positions){
+      mergeBrainData(data);
+      console.log('🧠 Cerveau partagé chargé:', Object.keys(data.positions).length, 'positions');
+    }
+  })
+  .catch(e=>console.log('Brain load:', e.message));
+}
+
+function saveSharedBrain(){
+  if(!AI_MEMORY || !AI_MEMORY.positions) return;
+  // Fusionner avec le cerveau actuel avant de sauvegarder
+  fetch(JSONBIN_URL+'/latest', {
+    headers: {
+      'X-Master-Key': JSONBIN_KEY,
+      'X-Bin-Meta': 'false'
+    }
+  })
+  .then(r=>r.json())
+  .then(remote=>{
+    // Fusionner remote + local
+    if(remote && remote.positions){
+      mergeBrainData(remote);
+    }
+    // Compresser et sauvegarder
+    const toSave = compressBrainData(AI_MEMORY);
+    return fetch(JSONBIN_URL, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JSONBIN_KEY
+      },
+      body: JSON.stringify(toSave)
+    });
+  })
+  .then(r=>r.json())
+  .then(()=>console.log('🧠 Cerveau partagé sauvegardé'))
+  .catch(e=>console.log('Brain save:', e.message));
+}
+
+function mergeBrainData(remote){
+  if(!remote || !remote.positions) return;
+  if(!AI_MEMORY.positions) AI_MEMORY.positions = {};
+  if(!AI_MEMORY.stats) AI_MEMORY.stats = {games:0,wins:0,losses:0};
+  
+  for(const [key, moves] of Object.entries(remote.positions)){
+    if(!AI_MEMORY.positions[key]) AI_MEMORY.positions[key] = {};
+    for(const [mk, stats] of Object.entries(moves)){
+      if(!AI_MEMORY.positions[key][mk]) 
+        AI_MEMORY.positions[key][mk] = {w:0,l:0,p:0};
+      // Prendre le max pour éviter les doublons
+      AI_MEMORY.positions[key][mk].w = Math.max(
+        AI_MEMORY.positions[key][mk].w, stats.w||0);
+      AI_MEMORY.positions[key][mk].l = Math.max(
+        AI_MEMORY.positions[key][mk].l, stats.l||0);
+      AI_MEMORY.positions[key][mk].p = Math.max(
+        AI_MEMORY.positions[key][mk].p, stats.p||0);
+    }
+  }
+  // Stats globales: prendre le max
+  if(remote.stats){
+    AI_MEMORY.stats.games = Math.max(AI_MEMORY.stats.games, remote.stats.games||0);
+    AI_MEMORY.stats.wins = Math.max(AI_MEMORY.stats.wins, remote.stats.wins||0);
+    AI_MEMORY.stats.losses = Math.max(AI_MEMORY.stats.losses, remote.stats.losses||0);
+  }
+  saveMemory(); // Sauvegarder localement aussi
+}
+
+function compressBrainData(brain){
+  // Garder seulement les positions avec assez de données
+  const compressed = {positions:{}, stats:{...brain.stats}};
+  for(const [key, moves] of Object.entries(brain.positions||{})){
+    const useful = {};
+    for(const [mk, stats] of Object.entries(moves)){
+      if(stats.p >= 2) useful[mk] = stats;
+    }
+    if(Object.keys(useful).length > 0) compressed.positions[key] = useful;
+  }
+  // Limiter à 1500 positions pour JSONBin (limite taille)
+  const keys = Object.keys(compressed.positions);
+  if(keys.length > 1500){
+    const sorted = keys.sort((a,b)=>{
+      const aP = Object.values(compressed.positions[a]).reduce((s,v)=>s+v.p,0);
+      const bP = Object.values(compressed.positions[b]).reduce((s,v)=>s+v.p,0);
+      return bP-aP;
+    });
+    const trimmed = {};
+    sorted.slice(0,1500).forEach(k=>trimmed[k]=compressed.positions[k]);
+    compressed.positions = trimmed;
+  }
+  return compressed;
+}
+
 function endGame(w,byTime=false){
   if(G.over) return; // Éviter double appel
   G.over=true;if(timerInt)clearInterval(timerInt);
@@ -1745,6 +1855,8 @@ function endGame(w,byTime=false){
     if(w==='green') rememberWin(aiMoveHistory);
     else rememberLoss(aiMoveHistory);
     aiMoveHistory=[];
+    // Synchroniser avec le cerveau partagé
+    setTimeout(saveSharedBrain, 1000);
   }
   showModal(byTime?'⏰':'🏆',
     byTime?t('to'):t('wi'),
@@ -2903,6 +3015,8 @@ document.addEventListener('keydown',e=>{
 });
 window.addEventListener('load',()=>{
   loadMemory();
+  // Charger le cerveau partagé
+  setTimeout(loadSharedBrain, 1500);
   // Tracker le visiteur
   setTimeout(trackVisitor, 2000);
   setLang('fr');
