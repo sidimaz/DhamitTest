@@ -1196,22 +1196,27 @@ function doMove(from, to){
   playSound(cap ? "capture" : "move");
   const p = G.board[to.r][to.c];
 
-  // Sultan promotion
+  // Sultan promotion — RÈGLE CORRECTE:
+  // - Arrive en dernière ligne SANS capture → Sultan → fin du tour
+  // - Arrive en dernière ligne EN capturant → peut continuer comme Kalb (mitoyenne)
+  // - Quand elle S'ARRÊTE en dernière ligne → Sultan acquis → fin du tour
+  // - Tour suivant → pouvoirs Sultan complets (capture à distance)
+  // - Passe par dernière ligne et continue chaîne → PAS Sultan (juste de passage)
   if(p&&!p.s&&((p.t==='red'&&to.r===0)||(p.t==='green'&&to.r===BS-1))){
-    p.s=true; toast(t('sb'),2000); flashCell(to.c,to.r,'rgba(255,215,0,.5)');
-    G.lastMove={fc:from.c,fr:from.r,tc:to.c,tr:to.r};
-    G.log.push(cn(from)+'→'+cn(to)+(cap?'×'+cn(cap):''));
-    G.mc++;
-    if(G.phase==='atk'){G.phase='play';G.atkDone=true;toast(t('ae'),1700);}
-    G.sel=null;G.valid=[];
-    // Sultan promu pendant une capture: peut continuer comme Kalb (pas à distance)
+    // Vérifier d'abord si on peut continuer la chaîne (captures mitoyennes)
     if(cap){
-      const moreAsKalb = pieceKillsAsKalb(to.c,to.r,p);
-      if(moreAsKalb.length>0){
+      const moreAsKalb = pieceKillsAsKalb(to.c, to.r, p);
+      if(moreAsKalb.length > 0){
+        // Peut continuer → PAS encore Sultan (juste de passage)
+        // Ne pas promouvoir maintenant, continuer la chaîne
+        G.lastMove={fc:from.c,fr:from.r,tc:to.c,tr:to.r};
+        G.log.push(cn(from)+'→'+cn(to)+(cap?'×'+cn(cap):''));
+        G.mc++;
+        if(G.phase==='atk'){G.phase='play';G.atkDone=true;toast(t('ae'),1700);}
         G.sel={c:to.c,r:to.r};
         G.valid=moreAsKalb;
         G.chainPiece={c:to.c,r:to.r};
-        renderBoard();updateUI();toast(t('ch'),2000);
+        renderBoard(); updateUI(); toast(t('ch'),2000);
         if(G.mode==='ai'&&G.turn==='green'){
           setTimeout(function(){
             if(G.chainPiece&&G.valid.length>0)
@@ -1221,10 +1226,17 @@ function doMove(from, to){
         return;
       }
     }
-    // Pas de suite possible: fin du tour
-    G.chainPiece=null;
-    renderBoard();updateUI();
-    switchTurn();
+    // S'arrête en dernière ligne → Sultan acquis → fin du tour
+    p.s=true;
+    toast(t('sb'),2000);
+    flashCell(to.c,to.r,'rgba(255,215,0,.5)');
+    G.lastMove={fc:from.c,fr:from.r,tc:to.c,tr:to.r};
+    G.log.push(cn(from)+'→'+cn(to)+(cap?'×'+cn(cap):''));
+    G.mc++;
+    if(G.phase==='atk'){G.phase='play';G.atkDone=true;toast(t('ae'),1700);}
+    G.sel=null; G.valid=[]; G.chainPiece=null;
+    renderBoard(); updateUI();
+    switchTurn(); // Fin du tour — Sultan joue au prochain tour
     return;
   }
   G.lastMove={fc:from.c, fr:from.r, tc:to.c, tr:to.r};
@@ -1626,13 +1638,39 @@ function sendGameStats(winnerName, byTime){
 const GFORM_V2 = 'https://docs.google.com/forms/d/e/1FAIpQLSd3ItmUqiYUTD49U4YOf6z2YQgq98esquQ7OPY4CGETmACg6w/formResponse';
 
 function _sendForm(data){
-  const params = new URLSearchParams();
-  for(const [k,v] of Object.entries(data)) params.append(k, v||'');
-  fetch(GFORM_V2, {
-    method:'POST', mode:'no-cors',
-    headers:{'Content-Type':'application/x-www-form-urlencoded'},
-    body: params.toString()
-  }).catch(()=>{});
+  try{
+    // Méthode 1: fetch no-cors
+    const params = new URLSearchParams();
+    for(const [k,v] of Object.entries(data)) params.append(k, v||'');
+    fetch(GFORM_V2, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body: params.toString()
+    }).catch(()=>{});
+    
+    // Méthode 2: iframe caché (backup fiable)
+    setTimeout(function(){
+      try{
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        const formUrl = GFORM_V2+'?'+params.toString();
+        // Créer un form dans l'iframe
+        document.body.appendChild(iframe);
+        const iDoc = iframe.contentDocument || iframe.contentWindow.document;
+        iDoc.open();
+        iDoc.write('<form method="POST" action="'+GFORM_V2+'">');
+        for(const [k,v] of Object.entries(data)){
+          iDoc.write('<input type="hidden" name="'+k+'" value="'+(v||'')+'">');
+        }
+        iDoc.write('</form>');
+        iDoc.close();
+        iDoc.forms[0].submit();
+        setTimeout(function(){ 
+          try{ document.body.removeChild(iframe); }catch(e){}
+        }, 3000);
+      }catch(e){}
+    }, 500);
+  }catch(e){}
 }
 
 function sendGFormStats(winnerName, byTime){
