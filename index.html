@@ -1879,6 +1879,65 @@ const TAWYIBA = [
 
 
 
+
+// Helpers IA (board operations)
+function cloneB(b){ return b.map(r=>r.map(p=>p?{t:p.t,s:p.s}:null)); }
+
+function applyB(b,f,tt){
+  const p=b[f.r][f.c]; if(!p) return;
+  b[tt.r][tt.c]=p; b[f.r][f.c]=null;
+  if(tt.cap) b[tt.cap.r][tt.cap.c]=null;
+  if(!p.s&&((p.t==='red'&&tt.r===0)||(p.t==='green'&&tt.r===BS-1))) p.s=true;
+}
+
+function getKillsB(board,c,r,p){
+  const mv=[],opp=p.t==='red'?'green':'red';
+  const dirs=[[0,1],[0,-1],[1,0],[-1,0],...(c%2===r%2?[[1,1],[1,-1],[-1,1],[-1,-1]]:[])];
+  for(const [dr,dc] of dirs){
+    if(p.s){
+      let nr=r+dr,nc=c+dc;
+      while(nr>=0&&nr<BS&&nc>=0&&nc<BS){
+        const tt=board[nr][nc];
+        if(tt){
+          if(tt.t===opp){
+            let lr=nr+dr,lc=nc+dc;
+            while(lr>=0&&lr<BS&&lc>=0&&lc<BS&&!board[lr][lc]){
+              mv.push({c:lc,r:lr,cap:{c:nc,r:nr}});lr+=dr;lc+=dc;
+            }
+          }
+          break;
+        }
+        nr+=dr;nc+=dc;
+      }
+    } else {
+      const mr=r+dr,mc=c+dc,lr=r+2*dr,lc=c+2*dc;
+      if(mr>=0&&mr<BS&&mc>=0&&mc<BS&&lr>=0&&lr<BS&&lc>=0&&lc<BS)
+        if(board[mr][mc]&&board[mr][mc].t===opp&&!board[lr][lc])
+          mv.push({c:lc,r:lr,cap:{c:mc,r:mr}});
+    }
+  }
+  return mv;
+}
+
+function getMovesB(board,c,r,p){
+  const mv=[];
+  const f=p.t==='red'?-1:1;
+  const onDiagB=c%2===r%2;
+  const dirs=p.s
+    ?[[0,1],[0,-1],[1,0],[-1,0],...(onDiagB?[[1,1],[1,-1],[-1,1],[-1,-1]]:[])]
+    :[[f,0],...(onDiagB?[[f,1],[f,-1]]:[])];
+  for(const [dr,dc] of dirs){
+    if(p.s){
+      let nr=r+dr,nc=c+dc;
+      while(nr>=0&&nr<BS&&nc>=0&&nc<BS){if(board[nr][nc])break;mv.push({c:nc,r:nr});nr+=dr;nc+=dc;}
+    } else {
+      const nr=r+dr,nc=c+dc;
+      if(nr>=0&&nr<BS&&nc>=0&&nc<BS&&!board[nr][nc])mv.push({c:nc,r:nr});
+    }
+  }
+  return mv;
+}
+
 function aiTurn(){
   if(G.over||G.turn!=='green') return;
   if(G.phase==='atk'){
