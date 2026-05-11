@@ -334,7 +334,7 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
       </div>
     </div>
           <button class="mbtn mbtn-dark" onclick="installPWA()" id="btn-pwa" style="display:none"><span>📲 Installer l'application</span></button>
-    <div class="ver">DHAMIÉ v7.5 • Sidimaz</div>
+    <div class="ver">DHAMIÉ v7.6 • Sidimaz</div>
   </div>
 </div>
 
@@ -2046,54 +2046,130 @@ function getAllMoves(board,col){
 
 function moveOrder(board,mv,col){
   let s=0;
+  // Captures: priorité absolue
   if(mv.to.cap){
     const cp=board[mv.to.cap.r][mv.to.cap.c];
-    s+=cp?(cp.s?1000:300):300;
+    s+=cp?(cp.s?1200:400):400;
+    // Bonus chaîne après capture
     const nb=cloneB(board); applyB(nb,mv.from,mv.to);
     const pp=nb[mv.to.r][mv.to.c];
-    if(pp) s+=getKillsB(nb,mv.to.c,mv.to.r,pp).length*200;
+    if(pp) s+=getKillsB(nb,mv.to.c,mv.to.r,pp).length*250;
+    // Bonus capture pièce menacée (récupération)
+    if(cp&&isPieceThreatened(board,mv.to.cap.c,mv.to.cap.r,col)) s+=150;
   }
-  if((col==='green'&&mv.to.r===BS-1)||(col==='red'&&mv.to.r===0)) s+=800;
+  // Promotion sultan
+  if((col==='green'&&mv.to.r===BS-1)||(col==='red'&&mv.to.r===0)) s+=900;
+  // Avancement
   const adv=col==='green'?mv.to.r:(BS-1-mv.to.r);
-  s+=adv*10+(4-Math.abs(mv.to.c-4))*5;
-  if(isMoveUnsafe(board,mv.from,mv.to,col)) s-=400;
+  s+=adv*12+(4-Math.abs(mv.to.c-4))*6;
+  // Fuir une menace
+  if(isPieceThreatened(board,mv.from.c,mv.from.r,col)) s+=300;
+  // Éviter de se mettre en danger
+  if(isMoveUnsafe(board,mv.from,mv.to,col)) s-=600;
+  // Bonus si on menace après le coup
+  const nb2=cloneB(board); applyB(nb2,mv.from,mv.to);
+  const pp2=nb2[mv.to.r][mv.to.c];
+  if(pp2) s+=getKillsB(nb2,mv.to.c,mv.to.r,pp2).length*80;
   return s;
 }
 
 function evalBoard(board,myCol){
   let score=0,myN=0,oppN=0,myS=0,oppS=0;
+  const opp=myCol==='red'?'green':'red';
+
   for(let r=0;r<BS;r++) for(let c=0;c<BS;c++){
     const p=board[r][c]; if(!p) continue;
     const mine=p.t===myCol;
     if(mine){myN++;if(p.s)myS++;}else{oppN++;if(p.s)oppS++;}
-    let v=p.s?500:120;
+
+    let v=0;
+    const threatened=isPieceThreatened(board,c,r,p.t);
+    const kills=getKillsB(board,c,r,p);
+
     if(p.s){
-      v+=getKillsB(board,c,r,p).length*40+getMovesB(board,c,r,p).length*15;
-      v+=(4-Math.max(Math.abs(c-4),Math.abs(r-4)))*20;
-      if(isPieceThreatened(board,c,r,p.t)) v-=250;
+      v=500;
+      v+=kills.length*50;
+      v+=getMovesB(board,c,r,p).length*15;
+      v+=(4-Math.max(Math.abs(c-4),Math.abs(r-4)))*25;
+      // Sultan menacé: grosse pénalité
+      if(threatened) v-=350;
     } else {
+      v=130;
       const adv=p.t==='green'?r:(BS-1-r);
-      v+=adv*15;
-      if((p.t==='green'&&r>=7)||(p.t==='red'&&r<=1)) v+=150;
-      else if((p.t==='green'&&r>=6)||(p.t==='red'&&r<=2)) v+=70;
-      v+=(4-Math.abs(c-4))*8+getKillsB(board,c,r,p).length*60;
+      v+=adv*18;
+
+      // Bonus promotion
+      if((p.t==='green'&&r>=7)||(p.t==='red'&&r<=1)) v+=200;
+      else if((p.t==='green'&&r>=6)||(p.t==='red'&&r<=2)) v+=90;
+      else if((p.t==='green'&&r>=5)||(p.t==='red'&&r<=3)) v+=40;
+
+      // Centre
+      v+=(4-Math.abs(c-4))*10;
+
+      // Captures disponibles = attaque
+      v+=kills.length*70;
+      // Bonus chaîne
+      for(const k of kills){
+        const nb=cloneB(board); applyB(nb,{c,r},k);
+        const pp=nb[k.r][k.c];
+        if(pp) v+=getKillsB(nb,k.c,k.r,pp).length*50;
+      }
+
+      // Connectivité = formation solide
       let conn=0;
-      for(const [dr,dc] of [[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]]){
+      const dirs=[[0,1],[0,-1],[1,0],[-1,0],...(c%2===r%2?[[1,1],[1,-1],[-1,1],[-1,-1]]:[])];
+      for(const [dr,dc] of dirs){
         const nr=r+dr,nc=c+dc;
         if(nr>=0&&nr<BS&&nc>=0&&nc<BS&&board[nr][nc]&&board[nr][nc].t===p.t) conn++;
       }
-      v+=conn*12-(conn===0?20:0);
-      if(isPieceThreatened(board,c,r,p.t)) v-=130;
+      v+=conn*15;
+      if(conn===0) v-=25; // Pièce isolée = dangereuse
+
+      // PÉNALITÉ MENACE: cœur du problème
+      if(threatened){
+        // Compter combien de pièces adverses menacent cette pièce
+        let threatCount=0;
+        for(let rr=0;rr<BS;rr++) for(let cc=0;cc<BS;cc++){
+          const ep=board[rr][cc];
+          if(ep&&ep.t!==p.t&&getKillsB(board,cc,rr,ep).some(k=>k.cap&&k.cap.c===c&&k.cap.r===r))
+            threatCount++;
+        }
+        v-=180*threatCount; // Pénalité forte par menace
+      }
+
+      // Bonus si la pièce peut sécuriser en avançant
+      if(!threatened && adv>=3) v+=20;
     }
+
     mine?score+=v:score-=v;
   }
-  score+=(myN-oppN)*100+(myS-oppS)*400;
+
+  // Matériel
+  score+=(myN-oppN)*110+(myS-oppS)*450;
   if(oppN===0) return 999999;
   if(myN===0) return -999999;
-  if(oppN<=6) score+=(7-oppN)*150;
-  if(myN<=6) score-=(7-myN)*150;
+
+  // Bonus fin de partie
+  if(oppN<=8) score+=(9-oppN)*120;
+  if(myN<=8) score-=(9-myN)*120;
+
+  // Mobilité (liberté de mouvement)
+  const myMvs=getAllMoves(board,myCol).length;
+  const oppMvs=getAllMoves(board,opp).length;
+  score+=(myMvs-oppMvs)*4;
+
+  // Bonus captures disponibles globales
+  let myKills=0,oppKills=0;
+  for(let r=0;r<BS;r++) for(let c=0;c<BS;c++){
+    const p=board[r][c];if(!p) continue;
+    const k=getKillsB(board,c,r,p).length;
+    if(p.t===myCol) myKills+=k; else oppKills+=k;
+  }
+  score+=(myKills-oppKills)*45;
+
   return score;
 }
+
 
 function isPieceThreatened(board,c,r,color){
   const opp=color==='red'?'green':'red';
