@@ -334,7 +334,7 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
       </div>
     </div>
           <button class="mbtn mbtn-dark" onclick="installPWA()" id="btn-pwa" style="display:none"><span>📲 Installer l'application</span></button>
-    <div class="ver">DHAMIÉ v7.6 • Sidimaz</div>
+    <div class="ver">DHAMIÉ v7.7 • Sidimaz</div>
   </div>
 </div>
 
@@ -2059,7 +2059,7 @@ function aiTurn(){
     return;
   }
   const lvl=Math.min(G.aiLv,4);
-  const depths=[0,1,2,3,4], times=[0,300,800,1500,2500];
+  const depths=[0,1,3,4,5], times=[0,300,1000,2000,3500];
   const depth=depths[lvl];
   aiTimeLimit=times[lvl]; aiStartTime=Date.now();
   const moves=getAllMoves(G.board,'green');
@@ -2158,32 +2158,46 @@ function getAllMoves(board,col){
 
 function moveOrder(board,mv,col){
   let s=0;
-  // Captures: priorité absolue
+  const opp=col==='red'?'green':'red';
+
+  // 1. CAPTURES: priorité absolue
   if(mv.to.cap){
     const cp=board[mv.to.cap.r][mv.to.cap.c];
-    s+=cp?(cp.s?1200:400):400;
-    // Bonus chaîne après capture
+    s+=cp?(cp.s?1500:500):500;
+    // Bonus chaîne
     const nb=cloneB(board); applyB(nb,mv.from,mv.to);
     const pp=nb[mv.to.r][mv.to.c];
-    if(pp) s+=getKillsB(nb,mv.to.c,mv.to.r,pp).length*250;
-    // Bonus capture pièce menacée (récupération)
-    if(cp&&isPieceThreatened(board,mv.to.cap.c,mv.to.cap.r,col)) s+=150;
+    if(pp) s+=getKillsB(nb,mv.to.c,mv.to.r,pp).length*300;
+    // Bonus si pièce capturée était menacée par nous
+    if(cp&&countThreatScore(board,mv.to.cap.c,mv.to.cap.r,col)>0) s+=200;
   }
-  // Promotion sultan
-  if((col==='green'&&mv.to.r===BS-1)||(col==='red'&&mv.to.r===0)) s+=900;
-  // Avancement
+
+  // 2. PROMOTION SULTAN
+  if((col==='green'&&mv.to.r===BS-1)||(col==='red'&&mv.to.r===0)) s+=1000;
+
+  // 3. SÉCURITÉ: pénalité forte si coup dangereux
+  const afterBoard=cloneB(board); applyB(afterBoard,mv.from,mv.to);
+  const threats=countThreatScore(afterBoard,mv.to.c,mv.to.r,col);
+  if(threats>0) s-=800*threats; // Très forte pénalité
+
+  // 4. FUIR: bonus si pièce actuelle est menacée
+  const currentThreat=countThreatScore(board,mv.from.c,mv.from.r,col);
+  if(currentThreat>0) s+=400;
+
+  // 5. MENACER: bonus si après le coup on menace l'adversaire
+  const pp2=afterBoard[mv.to.r][mv.to.c];
+  if(pp2) s+=getKillsB(afterBoard,mv.to.c,mv.to.r,pp2).length*100;
+
+  // 6. AVANCEMENT: bonus modéré (ne plus foncer bêtement)
   const adv=col==='green'?mv.to.r:(BS-1-mv.to.r);
-  s+=adv*12+(4-Math.abs(mv.to.c-4))*6;
-  // Fuir une menace
-  if(isPieceThreatened(board,mv.from.c,mv.from.r,col)) s+=300;
-  // Éviter de se mettre en danger
-  if(isMoveUnsafe(board,mv.from,mv.to,col)) s-=600;
-  // Bonus si on menace après le coup
-  const nb2=cloneB(board); applyB(nb2,mv.from,mv.to);
-  const pp2=nb2[mv.to.r][mv.to.c];
-  if(pp2) s+=getKillsB(nb2,mv.to.c,mv.to.r,pp2).length*80;
+  s+=adv*5; // Réduit de 12 à 5
+
+  // 7. CENTRE: léger bonus
+  s+=(4-Math.abs(mv.to.c-4))*4;
+
   return s;
 }
+
 
 function evalBoard(board,myCol){
   let score=0,myN=0,oppN=0,myS=0,oppS=0;
@@ -2296,13 +2310,28 @@ function getSafeMoves(board,col){ return getAllMoves(board,col); }
 
 function isMoveUnsafe(board,from,to,col){
   const nb=cloneB(board),p=nb[from.r][from.c];
+  if(!p) return false;
   nb[to.r][to.c]=p; nb[from.r][from.c]=null;
   const opp=col==='red'?'green':'red';
+  // Vérifier capture directe (1 coup)
   for(let r=0;r<BS;r++) for(let c=0;c<BS;c++){
     const ep=nb[r][c];
-    if(ep&&ep.t===opp&&getKillsB(nb,c,r,ep).some(k=>k.cap&&k.cap.c===to.c&&k.cap.r===to.r)) return true;
+    if(ep&&ep.t===opp&&getKillsB(nb,c,r,ep).some(k=>k.cap&&k.cap.c===to.c&&k.cap.r===to.r))
+      return true;
   }
   return false;
+}
+
+function countThreatScore(board,c,r,col){
+  // Compter le score de danger d'une pièce (0=sûr, >0=danger)
+  const opp=col==='red'?'green':'red';
+  let threats=0;
+  for(let rr=0;rr<BS;rr++) for(let cc=0;cc<BS;cc++){
+    const ep=board[rr][cc];
+    if(ep&&ep.t===opp&&getKillsB(board,cc,rr,ep).some(k=>k.cap&&k.cap.c===c&&k.cap.r===r))
+      threats++;
+  }
+  return threats;
 }
 
 
