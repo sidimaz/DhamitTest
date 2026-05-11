@@ -307,11 +307,6 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
 </head>
 <body lang="fr">
 
-<div class="lbar">
-  <button class="lb on" id="lfr" onclick="setLang('fr')">FR</button>
-  <button class="lb" id="lar" onclick="setLang('ar')">عر</button>
-</div>
-
 <!-- MENU -->
 
 <div id="menu-screen" class="screen active">
@@ -334,7 +329,7 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
       </div>
     </div>
           <button class="mbtn mbtn-dark" onclick="installPWA()" id="btn-pwa" style="display:none"><span>📲 Installer l'application</span></button>
-    <div class="ver">DHAMIÉ v7.7 • Sidimaz</div>
+    <div class="ver">DHAMIÉ v7.8 • Sidimaz</div>
   </div>
 </div>
 
@@ -345,11 +340,11 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
     <div class="sttl" id="s-ttl">Configuration</div>
     <div id="lf">
       <div class="fg">
-        <label class="fl" id="l-p1">Joueur 1 🪄 (bâtons dorés — bas)</label>
+        <label class="fl" id="l-p1"><svg viewBox="0 0 36 80" style="width:18px;height:32px;display:inline-block;vertical-align:middle"><defs><linearGradient id="wgm" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8C060"/><stop offset="45%" stop-color="#C08820"/><stop offset="100%" stop-color="#7A5010"/></linearGradient><linearGradient id="wsm" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#9A6818"/><stop offset="50%" stop-color="#C89228"/><stop offset="100%" stop-color="#8A5810"/></linearGradient></defs><rect x="15" y="32" width="6" height="42" rx="3" fill="url(#wsm)"/><ellipse cx="18" cy="20" rx="14" ry="17" fill="url(#wgm)"/><ellipse cx="12" cy="12" rx="5" ry="7" fill="rgba(255,255,255,.25)" transform="rotate(-15,12,12)"/></svg> Joueur 1 (bâtons dorés — bas)</label>
         <input class="fi" id="p1n" type="text" placeholder="Joueur 1" autocomplete="off">
       </div>
       <div class="fg" id="p2g">
-        <label class="fl" id="l-p2">Joueur 2 🫘 (crottes noires — haut)</label>
+        <label class="fl" id="l-p2"><svg viewBox="0 0 36 46" style="width:18px;height:24px;display:inline-block;vertical-align:middle"><defs><radialGradient id="dgm" cx="36%" cy="30%" r="65%"><stop offset="0%" stop-color="#6B3E1E"/><stop offset="55%" stop-color="#2E1508"/><stop offset="100%" stop-color="#150903"/></radialGradient></defs><path d="M18,3 C27,3 33,9 33,18 C33,28 26,38 18,43 C10,38 3,28 3,18 C3,9 9,3 18,3Z" fill="url(#dgm)"/><ellipse cx="12" cy="13" rx="4" ry="5" fill="rgba(255,255,255,.2)" transform="rotate(-20,12,13)"/></svg> Joueur 2 (crottes noires — haut)</label>
         <input class="fi" id="p2n" type="text" placeholder="Joueur 2" autocomplete="off">
       </div>
       <div class="fg" id="ailg" style="display:none">
@@ -362,8 +357,8 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
       <div class="fg">
         <label class="fl" id="l-who">Qui fait la Warda (premier coup) ?</label>
         <select class="fs" id="whos">
-          <option value="red" id="o-p1">Joueur 1 🪄 (bas)</option>
-          <option value="green" id="o-p2">Joueur 2 🫘 (haut)</option>
+          <option value="red" id="o-p1">Joueur 1 🏅 (bas)</option>
+          <option value="green" id="o-p2">Joueur 2 ⚫ (haut)</option>
           <option value="random" id="o-rnd">Aléatoire</option>
         </select>
       </div>
@@ -408,7 +403,7 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
     <div class="sp">
       <div class="pcard bc" id="p1c">
         <div class="pnm">
-          <span class="ico-b"><span class="ih"></span><span class="is"></span></span>
+          <svg viewBox="0 0 36 80" style="width:18px;height:32px;display:inline-block;vertical-align:middle"><defs><linearGradient id="wgm" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8C060"/><stop offset="45%" stop-color="#C08820"/><stop offset="100%" stop-color="#7A5010"/></linearGradient><linearGradient id="wsm" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#9A6818"/><stop offset="50%" stop-color="#C89228"/><stop offset="100%" stop-color="#8A5810"/></linearGradient></defs><rect x="15" y="32" width="6" height="42" rx="3" fill="url(#wsm)"/><ellipse cx="18" cy="20" rx="14" ry="17" fill="url(#wgm)"/><ellipse cx="12" cy="12" rx="5" ry="7" fill="rgba(255,255,255,.25)" transform="rotate(-15,12,12)"/></svg>
           <span id="p1dn">—</span>
         </div>
         <div class="ppc" id="p1pc">Pièces: 40</div>
@@ -417,7 +412,7 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
       </div>
       <div class="pcard dc" id="p2c">
         <div class="pnm">
-          <span class="ico-d"></span>
+          <svg viewBox="0 0 36 46" style="width:18px;height:24px;display:inline-block;vertical-align:middle"><defs><radialGradient id="dgm" cx="36%" cy="30%" r="65%"><stop offset="0%" stop-color="#6B3E1E"/><stop offset="55%" stop-color="#2E1508"/><stop offset="100%" stop-color="#150903"/></radialGradient></defs><path d="M18,3 C27,3 33,9 33,18 C33,28 26,38 18,43 C10,38 3,28 3,18 C3,9 9,3 18,3Z" fill="url(#dgm)"/><ellipse cx="12" cy="13" rx="4" ry="5" fill="rgba(255,255,255,.2)" transform="rotate(-20,12,13)"/></svg>
           <span id="p2dn">—</span>
         </div>
         <div class="ppc" id="p2pc">Pièces: 40</div>
@@ -427,11 +422,11 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
       <div id="sfb" class="sfb" style="display:none">⚠ Soufla !</div>
       <div class="sttl2" id="sec-cap">Capturées</div>
       <div style="margin-top:4px">
-        <div style="font-size:.62rem;color:var(--gold-l);font-weight:600;margin-bottom:3px" id="cap1l">🪄 a pris :</div>
+        <div style="font-size:.62rem;color:var(--gold-l);font-weight:600;margin-bottom:3px" id="cap1l"><svg viewBox="0 0 36 80" style="width:18px;height:32px;display:inline-block;vertical-align:middle"><defs><linearGradient id="wgm" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8C060"/><stop offset="45%" stop-color="#C08820"/><stop offset="100%" stop-color="#7A5010"/></linearGradient><linearGradient id="wsm" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#9A6818"/><stop offset="50%" stop-color="#C89228"/><stop offset="100%" stop-color="#8A5810"/></linearGradient></defs><rect x="15" y="32" width="6" height="42" rx="3" fill="url(#wsm)"/><ellipse cx="18" cy="20" rx="14" ry="17" fill="url(#wgm)"/><ellipse cx="12" cy="12" rx="5" ry="7" fill="rgba(255,255,255,.25)" transform="rotate(-15,12,12)"/></svg> a pris :</div>
         <div id="p1cap-count" style="font-size:1.1rem;font-weight:800;color:#F2C060;background:rgba(201,147,58,.15);border:1px solid rgba(201,147,58,.3);border-radius:6px;padding:3px 8px;text-align:center;min-width:32px;display:inline-block">0</div>
       </div>
       <div style="margin-top:6px">
-        <div style="font-size:.62rem;color:rgba(255,255,255,.5);font-weight:600;margin-bottom:3px" id="cap2l">🫘 a pris :</div>
+        <div style="font-size:.62rem;color:rgba(255,255,255,.5);font-weight:600;margin-bottom:3px" id="cap2l"><svg viewBox="0 0 36 46" style="width:18px;height:24px;display:inline-block;vertical-align:middle"><defs><radialGradient id="dgm" cx="36%" cy="30%" r="65%"><stop offset="0%" stop-color="#6B3E1E"/><stop offset="55%" stop-color="#2E1508"/><stop offset="100%" stop-color="#150903"/></radialGradient></defs><path d="M18,3 C27,3 33,9 33,18 C33,28 26,38 18,43 C10,38 3,28 3,18 C3,9 9,3 18,3Z" fill="url(#dgm)"/><ellipse cx="12" cy="13" rx="4" ry="5" fill="rgba(255,255,255,.2)" transform="rotate(-20,12,13)"/></svg> a pris :</div>
         <div id="p2cap-count" style="font-size:1.1rem;font-weight:800;color:#C8A060;background:rgba(100,70,30,.3);border:1px solid rgba(150,100,50,.3);border-radius:6px;padding:3px 8px;text-align:center;min-width:32px;display:inline-block">0</div>
       </div>
     </div>
@@ -1246,9 +1241,11 @@ function doMove(from, to){
         G.sel=null; G.valid=[]; G.chainPiece=null;
         switchTurn(); return;
       }
-      // Soufla OFF: pas de clignotement, tour passé directement
+      // Mode soufla: gérer la chaîne
       if(!G.soufla){
+        // Mode MANUEL: démarrer timer 15s, l'adversaire peut réclamer
         G.sel=null; G.valid=[]; G.chainPiece=null;
+        startChainTimer15({c:to.c,r:to.r}, more);
         switchTurn(); return;
       }
       // Soufla ON: forcer la continuation
@@ -1268,17 +1265,11 @@ function doMove(from, to){
 
   // ---- SOUFLA CHECK (skip when receiving opponent move online) ----
   if(G.soufla&&G.phase==='play'&&!(G.mode==='online'&&OL.receiving)){
-    // Ne pas vérifier soufla sur le coup de l'IA (elle joue toujours correctement)
-    const justPlayedColor = G.turn==='red'?'green':'red';
-    if(G.mode==='ai'&&justPlayedColor==='green'){
-      // L'IA vient de jouer - pas de soufla contre elle
-    } else {
-      const faultyPos = checkSoufla(from, to, cap, killMap);
-      if(faultyPos){
-        G.chainPiece=null;
-        triggerSoufla(G.turn, faultyPos);
-        return;
-      }
+    const faultyPos = checkSoufla(from, to, cap, killMap);
+    if(faultyPos){
+      G.chainPiece=null;
+      triggerSoufla(G.turn, faultyPos);
+      return;
     }
   }
 
@@ -1630,107 +1621,87 @@ function sendGameStats(winnerName, byTime){
 
 
 // ============================================================
-// STATS via Google Forms (no-CORS avec img pixel)
+// STATS via Google Forms v2
 // ============================================================
-const GFORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSe9iEABXdCUue_7krbDsXiMmCJDRwQhuTnogb9PFLiPMaJ_Pw/formResponse';
-// Entry IDs à remplir quand on les aura
-// Pour l'instant: envoi via fetch no-cors (ne bloque pas même si bloqué)
-let GFORM_ENTRIES = {
-  date: 'entry.453748403',
-  mode: 'entry.399167631', 
-  joueur1: 'entry.259663987',
-  joueur2: 'entry.1177109810',
-  gagnant: 'entry.151761107',
-  coups: 'entry.714313404',
-  duree: 'entry.889008628',
-  niveauIa: 'entry.89485309',
-  langue: 'entry.2064644584',
-  soufla: 'entry.1027578855'
-};
+const GFORM_V2 = 'https://docs.google.com/forms/d/e/1FAIpQLSd3ItmUqiYUTD49U4YOf6z2YQgq98esquQ7OPY4CGETmACg6w/formResponse';
 
-function sendGFormStats(winnerName, byTime){
-  try {
-    const dMs = G.startTime ? Date.now()-G.startTime : 0;
-    const dMin = Math.floor(dMs/60000);
-    const dSec = Math.floor((dMs%60000)/1000);
-    const params = new URLSearchParams();
-    params.append(GFORM_ENTRIES.date, new Date().toLocaleDateString('fr-FR'));
-    params.append(GFORM_ENTRIES.mode, G.mode||'local');
-    params.append(GFORM_ENTRIES.joueur1, G.p1||'J1');
-    params.append(GFORM_ENTRIES.joueur2, G.p2||'J2');
-    params.append(GFORM_ENTRIES.gagnant, winnerName+(byTime?' (temps)':''));
-    params.append(GFORM_ENTRIES.coups, G.mc||0);
-    params.append(GFORM_ENTRIES.duree, dMin+'m '+dSec+'s');
-    params.append(GFORM_ENTRIES.niveauIa, G.mode==='ai'?G.aiLv:'');
-    params.append(GFORM_ENTRIES.langue, L||'fr');
-    params.append(GFORM_ENTRIES.soufla, G.soufla?'ON':'OFF');
-    // no-cors: ne bloque jamais même si réseau limité
-    fetch(GFORM_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: params.toString()
-    }).catch(function(){});
-  } catch(e){}
+function _sendForm(data){
+  const params = new URLSearchParams();
+  for(const [k,v] of Object.entries(data)) params.append(k, v||'');
+  fetch(GFORM_V2, {
+    method:'POST', mode:'no-cors',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body: params.toString()
+  }).catch(()=>{});
 }
 
-
-// ============================================================
-// TRACKING VISITEURS (pays, ville, langue)
-// ============================================================
-const GFORM_VISIT_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSe9iEABXdCUue_7krbDsXiMmCJDRwQhuTnogb9PFLiPMaJ_Pw/formResponse';
+function sendGFormStats(winnerName, byTime){
+  try{
+    const dMs = G.startTime ? Date.now()-G.startTime : 0;
+    const dMin = Math.floor(dMs/60000), dSec = Math.floor((dMs%60000)/1000);
+    _sendForm({
+      'entry.1774737266': G.mode||'local',
+      'entry.971111169': '',
+      'entry.1858908990': '',
+      'entry.939541153': '',
+      'entry.435861071': G.p1||'J1',
+      'entry.1006020000': G.p2||'J2',
+      'entry.1107308413': winnerName+(byTime?' (temps)':''),
+      'entry.1492098891': G.mc||0,
+      'entry.850886531': dMin+'m '+dSec+'s',
+      'entry.1495313871': G.mode==='ai'?G.aiLv:'',
+      'entry.346944188': L||'fr',
+      'entry.71435964': G.soufla?'ON':'OFF',
+      'entry.214931977': Intl.DateTimeFormat().resolvedOptions().timeZone||''
+    });
+  }catch(e){}
+}
 
 function trackVisitor(){
-  // Éviter de tracker plusieurs fois la même session
-  try {
-    const lastVisit = localStorage.getItem('dhamiet_last_visit');
+  try{
+    const last = localStorage.getItem('dhamiet_last_visit');
     const now = Date.now();
-    if(lastVisit && (now - parseInt(lastVisit)) < 3600000) return; // 1h minimum entre visites
+    if(last && (now-parseInt(last)) < 3600000) return;
     localStorage.setItem('dhamiet_last_visit', now);
-  } catch(e){}
-  
-  // Récupérer la géolocalisation via ipapi.co (gratuit)
+  }catch(e){}
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone||'';
+  const lang = navigator.language||'fr';
+  // Essayer d'obtenir géolocalisation
   fetch('https://ipapi.co/json/')
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      const params = new URLSearchParams();
-      params.append('entry.453748403', new Date().toLocaleDateString('fr-FR')); // date
-      params.append('entry.399167631', 'visite'); // mode = visite
-      params.append('entry.259663987', data.city || 'inconnu'); // joueur1 = ville
-      params.append('entry.1177109810', data.country_name || 'inconnu'); // joueur2 = pays
-      params.append('entry.151761107', data.country_code || ''); // gagnant = code pays
-      params.append('entry.714313404', '0'); // coups = 0
-      params.append('entry.889008628', '0m 0s'); // duree
-      params.append('entry.89485309', ''); // niveauIa
-      params.append('entry.2064644584', navigator.language || 'fr'); // langue navigateur
-      params.append('entry.1027578855', data.timezone || ''); // soufla = timezone
-      
-      fetch(GFORM_VISIT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: params.toString()
-      }).catch(function(){});
+    .then(r=>r.json())
+    .then(d=>{
+      _sendForm({
+        'entry.1774737266': 'visite',
+        'entry.971111169': d.city||'',
+        'entry.1858908990': d.country_name||'',
+        'entry.939541153': d.country_code||'',
+        'entry.435861071': '',
+        'entry.1006020000': '',
+        'entry.1107308413': '',
+        'entry.1492098891': '0',
+        'entry.850886531': '0m 0s',
+        'entry.1495313871': '',
+        'entry.346944188': lang,
+        'entry.71435964': '',
+        'entry.214931977': d.timezone||tz
+      });
     })
-    .catch(function(){
-      // Si ipapi bloqué, envoyer quand même sans géolocalisation
-      const params = new URLSearchParams();
-      params.append('entry.453748403', new Date().toLocaleDateString('fr-FR'));
-      params.append('entry.399167631', 'visite');
-      params.append('entry.259663987', 'inconnu');
-      params.append('entry.1177109810', 'inconnu');
-      params.append('entry.151761107', '');
-      params.append('entry.714313404', '0');
-      params.append('entry.889008628', '0m 0s');
-      params.append('entry.89485309', '');
-      params.append('entry.2064644584', navigator.language || 'fr');
-      params.append('entry.1027578855', '');
-      fetch(GFORM_VISIT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: params.toString()
-      }).catch(function(){});
+    .catch(()=>{
+      _sendForm({
+        'entry.1774737266': 'visite',
+        'entry.971111169': '',
+        'entry.1858908990': '',
+        'entry.939541153': '',
+        'entry.435861071': '',
+        'entry.1006020000': '',
+        'entry.1107308413': '',
+        'entry.1492098891': '0',
+        'entry.850886531': '0m 0s',
+        'entry.1495313871': '',
+        'entry.346944188': lang,
+        'entry.71435964': '',
+        'entry.214931977': tz
+      });
     });
 }
 
@@ -2691,16 +2662,56 @@ function installPWA(){
 
 // Afficher bouton PWA sur iOS automatiquement
 window.addEventListener('load', function(){
-  // Détecter iOS incluant iPad avec iPadOS (qui se déclare comme Mac)
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) 
-    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const isStandalone = window.navigator.standalone 
-    || window.matchMedia('(display-mode: standalone)').matches;
-  if(isIOS && !isStandalone){
-    const btn = document.getElementById('btn-pwa');
-    if(btn) btn.style.display = '';
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1)
+    || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints>1);
+  const isStandalone = window.navigator.standalone===true
+    || window.matchMedia('(display-mode:standalone)').matches;
+  if(isStandalone){
+    // Déjà installé: cacher le bouton
+    const btn=document.getElementById('btn-pwa');
+    if(btn) btn.style.display='none';
+  } else if(isIOS){
+    const btn=document.getElementById('btn-pwa');
+    if(btn) btn.style.display='';
   }
 });
+
+// Timer 15s chaîne incomplète
+function startChainTimer15(piecePos, possibleKills){
+  if(G._chain15) clearTimeout(G._chain15);
+  G._chain15Pos = piecePos;
+  G._chain15Kills = possibleKills;
+  G._chain15 = setTimeout(function(){
+    G._chain15 = null;
+    if(G.over || G.sfMode) return;
+    if(!G.board[piecePos.r] || !G.board[piecePos.r][piecePos.c]) return;
+    const p = G.board[piecePos.r][piecePos.c];
+    const moreKills = pieceKills(piecePos.c, piecePos.r, p);
+    if(!moreKills.length) return;
+    if(G.soufla){
+      // Mode AUTO: déclencher soufla automatiquement
+      triggerSoufla(p.t, [piecePos]);
+    } else {
+      // Mode MANUEL: alerter l'adversaire qu'il peut réclamer
+      const opp = p.t==='red'?'green':'red';
+      const oppName = opp==='red'?G.p1:G.p2;
+      const sfb = document.getElementById('sfb');
+      sfb.textContent = L==='ar'
+        ?'⏱ 15 ثانية — '+oppName+' يمكنه المطالبة بسوفلة! اضغط 🚨'
+        :'⏱ 15s — '+oppName+' peut réclamer Soufla ! Appuyez 🚨';
+      sfb.style.display = 'block';
+      flashCell(piecePos.c, piecePos.r, 'rgba(255,165,0,.6)');
+      G._canClaim15 = piecePos;
+      setTimeout(function(){
+        if(!MS.active){ 
+          sfb.style.display='none'; 
+          G._canClaim15=null; 
+        }
+      }, 15000);
+    }
+  }, 15000);
+}
 
 function cn(pos){return 'ABCDEFGHI'[pos.r]+(pos.c+1);}
 
