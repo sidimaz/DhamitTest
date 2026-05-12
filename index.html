@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 
 <html lang="fr">
 <head>
@@ -2102,9 +2102,24 @@ function aiTurn(){
   aiTimeLimit=times[lvl]; aiStartTime=Date.now();
   const moves=getAllMoves(G.board,'green');
   if(!moves.length) return;
-  // RÈGLE: si captures disponibles, l'IA DOIT capturer (pas de soufla)
+  // RÈGLE: l'IA doit choisir le maximum de captures possible
   const capMoves=moves.filter(m=>m.to.cap);
-  const legalMoves=capMoves.length?capMoves:moves;
+  let legalMoves;
+  if(capMoves.length){
+    // Calculer le max de chaîne pour chaque capture
+    let maxChain=0;
+    for(const mv of capMoves){
+      const nb=cloneB(G.board); applyB(nb,mv.from,mv.to);
+      const pp=nb[mv.to.r][mv.to.c];
+      const chain=pp?maxChainKillsB(nb,mv.to.c,mv.to.r,pp,0):0;
+      mv._chain=1+chain;
+      if(mv._chain>maxChain) maxChain=mv._chain;
+    }
+    // Garder seulement les coups avec le maximum de chaîne
+    legalMoves=capMoves.filter(m=>m._chain===maxChain);
+  } else {
+    legalMoves=moves;
+  }
   if(lvl===1){
     doMoveAI(legalMoves[Math.floor(Math.random()*legalMoves.length)]); return;
   }
