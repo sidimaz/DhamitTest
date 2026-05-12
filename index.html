@@ -1390,7 +1390,10 @@ function maxChainKills(board,c,r,p,depth){
 // pieceKills but works on any board (not G.board)
 function pieceKillsOnBoard(board,c,r,p){
   const mv=[],opp=p.t==='red'?'green':'red';
-  for(const [dr,dc] of allDirs(c,r)){
+  const dirs=p.s
+    ?[[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]]
+    :allDirs(c,r);
+  for(const [dr,dc] of dirs){
     if(p.s){
       let nr=r+dr,nc=c+dc;
       while(nr>=0&&nr<BS&&nc>=0&&nc<BS){
@@ -1414,7 +1417,8 @@ function checkSoufla(from, to, cap, killMap){
   let globalMax = 0;
   for(const v of Object.values(killMap)) if(v > globalMax) globalMax = v;
   const movingKey = from.c+','+from.r;
-  const movingMax = killMap[movingKey] || 0;
+  // Si la pièce a capturé mais n'est pas dans killMap → au moins 1 capture
+  const movingMax = killMap[movingKey] || (cap ? 1 : 0);
   const faulty = [];
   if(!cap){
     for(const [key] of Object.entries(killMap)){
