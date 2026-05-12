@@ -329,7 +329,7 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
       </div>
     </div>
           <button class="mbtn mbtn-dark" onclick="installPWA()" id="btn-pwa" style="display:none"><span>📲 Installer l'application</span></button>
-    <div class="ver">DHAMIÉ v7.8 • Sidimaz</div>
+    <div class="ver">DHAMIÉ v7.9 • Sidimaz</div>
   </div>
 </div>
 
@@ -357,8 +357,8 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
       <div class="fg">
         <label class="fl" id="l-who">Qui fait la Warda (premier coup) ?</label>
         <select class="fs" id="whos">
-          <option value="red" id="o-p1">Joueur 1 🏅 (bas)</option>
-          <option value="green" id="o-p2">Joueur 2 ⚫ (haut)</option>
+          <option value="red" id="o-p1">🥇 Joueur 1 — Bâtons (bas)</option>
+          <option value="green" id="o-p2">🟤 Joueur 2 — Crottes (haut)</option>
           <option value="random" id="o-rnd">Aléatoire</option>
         </select>
       </div>
@@ -554,30 +554,84 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
     <div class="rtit" id="r-tit">Règles du Dhamié</div>
   </div>
   <div id="r-fr">
-    <div class="rsec"><h3>🎯 Aperçu</h3><p>Le <span class="term">Dhamié</span> se joue sur un plateau <b>9×9</b> avec <b>80 pièces</b> (40 par joueur) placées sur les intersections. Tradition : bâtons dorés et crottes de chameau séchées sur sable.</p></div>
-    <div class="rsec"><h3>♟ Pièces</h3><ul>
-      <li><span class="term">Kalb (soldat)</span> : avance en avant (ou diagonale avant si sur ligne diagonale). Capture dans toutes les directions.</li>
-      <li><span class="term">Sultan ★</span> : atteint la dernière ligne adverse → se déplace et capture loin dans toutes les directions.</li></ul></div>
-    <div class="rsec"><h3>⚔️ Règles</h3><ul>
-      <li><span class="term">Warda</span> : premier coup — bâtons: F4→E5 / crottes: D6→E5</li>
-      <li><span class="term">Soufla (optionnelle)</span> : si vous ne capturez pas quand vous pouviez, l'adversaire récupère <b>cette pièce précise</b> comme pénalité</li>
-      <li><span class="term">Capture multiple</span> : continuer si possible</li></ul></div>
-    <div class="rsec"><h3>🏆 Fin</h3><ul>
-      <li><span class="term">Victoire</span> : éliminer toutes les pièces adverses ou les bloquer</li>
-      <li><span class="term">Nul (Koud)</span> : Sultan contre Sultan</li></ul></div>
+    <div class="rsec"><h3>🎯 Qu'est-ce que le Dhamié ?</h3>
+      <p>Le <span class="term">Dhamié</span> est un jeu traditionnel mauritanien. Il se joue à <b>2 joueurs</b> sur un plateau <b>9x9</b> avec <b>80 pièces</b> (40 par joueur). Bâtons dorés contre crottes de chameau séchées sur le sable.</p>
+      <p><b>But :</b> éliminer toutes les pièces adverses ou les bloquer.</p>
+    </div>
+    <div class="rsec"><h3>📐 Le plateau</h3>
+      <p>Grille 9x9. Pièces sur les <b>intersections</b>. Cases diagonales = mouvements en diagonale possibles.</p>
+    </div>
+    <div class="rsec"><h3>♟ Les pièces</h3><ul>
+      <li><span class="term">Kalb (soldat)</span> : avance vers l'avant. Capture dans toutes les directions.</li>
+      <li><span class="term">Sultan</span> : se déplace et capture à distance dans toutes les directions.</li>
+    </ul></div>
+    <div class="rsec"><h3>🌸 La Warda — premier coup obligatoire</h3><ul>
+      <li>Bâtons (bas) : <b>F4 vers E5</b></li>
+      <li>Crottes (haut) : <b>D6 vers E5</b></li>
+    </ul></div>
+    <div class="rsec"><h3>⚔️ Captures et chaînes</h3><ul>
+      <li>Sauter par-dessus une pièce adverse vers la case vide derrière.</li>
+      <li>Sultan : capture à distance, atterrit n'importe où derrière.</li>
+      <li>Chaîne : si on peut continuer, on <b>doit</b> continuer. Capture <b>obligatoire</b>.</li>
+    </ul></div>
+    <div class="rsec"><h3>👑 Sultan</h3><ul>
+      <li>Kalb qui s'arrête sur la dernière ligne = Sultan.</li>
+      <li>En chaîne : passe par dernière ligne et continue = pas encore Sultan. Sultan seulement à l'arrêt.</li>
+      <li>Après promotion : fin du tour. Pas de capture immédiate.</li>
+      <li>Tour suivant : tous les pouvoirs (avant, arrière, latéral, diagonal, distance).</li>
+      <li><span class="term">Koud</span> : Sultan vs Sultan = nul.</li>
+    </ul></div>
+    <div class="rsec"><h3>⚡ Soufla AUTO (ON)</h3><ul>
+      <li>Pas de capture alors que possible, ou capture inférieure au max, ou chaîne arrêtée : pièce retirée.</li>
+      <li><span class="term">Nombre égal :</span> plusieurs pièces avec même max = libre choix, pas de Soufla.</li>
+    </ul></div>
+    <div class="rsec"><h3>🚨 Soufla MANUELLE (OFF)</h3><ul>
+      <li>Bouton 🚨 Réclamer visible. Double-tap sur pièce fautive. Adversaire appuie ✅. Pièce retirée.</li>
+      <li>Chaîne incomplète : timer <b>15s</b> pour réclamer.</li>
+    </ul></div>
+    <div class="rsec"><h3>↩ Annulation et fin</h3><ul>
+      <li>Bouton ↩ : demande annulation. Adversaire accepte ou refuse. Min 1 coup avant de redemander.</li>
+      <li><span class="term">Victoire :</span> éliminer ou bloquer toutes les pièces adverses.</li>
+      <li><span class="term">Koud :</span> Sultan contre Sultan = nul.</li>
+    </ul></div>
   </div>
-  <div id="r-ar" style="display:none">
-    <div class="rsec"><h3>🎯 نظرة عامة</h3><p><span class="term">ظامت</span> رقعة <b>9×9</b> بـ<b>80 قطعة</b> على تقاطعات الخطوط.</p></div>
+
+<div id="r-ar" style="display:none">
+    <div class="rsec"><h3>🎯 ما هو ظامِتْ؟</h3>
+      <p><span class="term">ظامِتْ</span> لعبة تقليدية موريتانية. لاعبان على رقعة <b>9x9</b> بـ<b>80 قطعة</b>. الهدف: القضاء على قطع الخصم أو تجميدها.</p>
+    </div>
     <div class="rsec"><h3>♟ القطع</h3><ul>
-      <li><span class="term">الكلت</span>: يتحرك للأمام، يقتل في كل الاتجاهات</li>
-      <li><span class="term">السلطان ★</span>: يصل الصف الأخير، يتحرك ويقتل بعيداً</li></ul></div>
-    <div class="rsec"><h3>⚔️ القواعد</h3><ul>
-      <li><span class="term">الوردة</span>: الحركة الأولى (D6→E5 أو F4→E5)</li>
-      <li><span class="term">سوفلة</span>: إذا فاتك القتل، يأخذ الخصم القطعة المعنية</li></ul></div>
-    <div class="rsec"><h3>🏆 نهاية اللعبة</h3><ul>
-      <li><span class="term">الغلب</span>: القضاء على قطع الخصم</li>
-      <li><span class="term">الكود</span>: سلطان ضد سلطان</li></ul></div>
+      <li><span class="term">الكلت</span>: يتحرك للأمام. يقتل في كل الاتجاهات.</li>
+      <li><span class="term">السلطان</span>: يتحرك ويقتل بعداً في كل الاتجاهات.</li>
+    </ul></div>
+    <div class="rsec"><h3>🌸 الوردة</h3><ul>
+      <li>العصي (أسفل): <b>F4 إلى E5</b></li>
+      <li>البراز (أعلى): <b>D6 إلى E5</b></li>
+    </ul></div>
+    <div class="rsec"><h3>⚔️ القتل والتسلسل</h3><ul>
+      <li>القفز فوق قطعة الخصم. القتل إجباري. التسلسل إجباري.</li>
+      <li>السلطان يقتل بعداً في أي مكان خلف القطعة.</li>
+    </ul></div>
+    <div class="rsec"><h3>👑 السلطان</h3><ul>
+      <li>الكلت يتوقف في الصف الأخير = سلطان. بعد الترقية: نهاية الدور، لا قتل فوري.</li>
+      <li>أثناء التسلسل: يكمل بدون صلاحيات السلطان حتى يتوقف في الصف الأخير.</li>
+      <li>الدور التالي: يتحرك ويقتل بعداً في كل الاتجاهات.</li>
+      <li><span class="term">الكود</span>: سلطان ضد سلطان = تعادل.</li>
+    </ul></div>
+    <div class="rsec"><h3>⚡ السوفلة تلقائي</h3><ul>
+      <li>لم تقتل / قتلت أقل / أوقفت التسلسل: القطعة تسحب.</li>
+      <li><span class="term">التساوي</span>: عدة قطع بنفس الحد الأقصى = حرية الاختيار.</li>
+    </ul></div>
+    <div class="rsec"><h3>🚨 السوفلة اليدوية</h3><ul>
+      <li>اضغط 🚨 ثم انقر مرتين على القطعة المخطئة. الخصم يضغط ✅ للتأكيد.</li>
+      <li>سلسلة ناقصة: مهلة <b>15 ثانية</b> للمطالبة.</li>
+    </ul></div>
+    <div class="rsec"><h3>🏆 النهاية</h3><ul>
+      <li><span class="term">الغلب</span>: القضاء على قطع الخصم أو تجميدها.</li>
+      <li><span class="term">الكود</span>: سلطان ضد سلطان = تعادل.</li>
+    </ul></div>
   </div>
+
   <div style="text-align:center;margin:16px 0 24px">
     <button class="btn btn-p" onclick="showScreen('menu-screen')" id="b-rm">← Menu</button>
   </div>
@@ -629,6 +683,7 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
 <div class="toast" id="toast"></div>
 
 <script>
+
 'use strict';
 // ============================================================
 const BS=9,MC=4,MR=4; // morada = E5
@@ -1349,24 +1404,21 @@ function pieceKillsOnBoard(board,c,r,p){
 // Returns array of faulty piece positions, or null if no soufla
 function checkSoufla(from, to, cap, killMap){
   if(!Object.keys(killMap).length) return null;
-  const movingKey = from.c+','+from.r;
-  const movingMax = killMap[movingKey] || 0;
   let globalMax = 0;
   for(const v of Object.values(killMap)) if(v > globalMax) globalMax = v;
+  const movingKey = from.c+','+from.r;
+  const movingMax = killMap[movingKey] || 0;
   const faulty = [];
   if(!cap){
-    // Pas de capture alors que possible -> soufla sur toutes les pièces fautives
     for(const [key] of Object.entries(killMap)){
       const [kc,kr] = key.split(',').map(Number);
-      const curC = (kc===from.c&&kr===from.r)?to.c:kc;
-      const curR = (kc===from.c&&kr===from.r)?to.r:kr;
+      const curC=(kc===from.c&&kr===from.r)?to.c:kc;
+      const curR=(kc===from.c&&kr===from.r)?to.r:kr;
       if(G.board[curR]&&G.board[curR][curC]&&!faulty.some(x=>x.c===curC&&x.r===curR))
         faulty.push({c:curC,r:curR});
     }
     return faulty.length?faulty:null;
   }
-  // Capture faite: soufla seulement si une AUTRE pièce pouvait capturer STRICTEMENT PLUS
-  // Règle du nombre égal: si movingMax >= globalMax -> libre choix -> pas de soufla
   if(movingMax >= globalMax) return null;
   for(const [key,val] of Object.entries(killMap)){
     const [kc,kr] = key.split(',').map(Number);
@@ -1378,6 +1430,7 @@ function checkSoufla(from, to, cap, killMap){
   }
   return faulty.length?faulty:null;
 }
+
 function execMove(from,to,cap){
   const p=G.board[from.r][from.c];
   G.board[to.r][to.c]=p; G.board[from.r][from.c]=null;
@@ -1646,23 +1699,6 @@ function _sendForm(data){
       headers:{'Content-Type':'application/x-www-form-urlencoded'},
       body: params.toString()
     }).catch(()=>{});
-    // Backup iframe
-    setTimeout(function(){
-      try{
-        const iframe = document.createElement('iframe');
-        iframe.style.display='none';
-        document.body.appendChild(iframe);
-        const iDoc = iframe.contentDocument||iframe.contentWindow.document;
-        iDoc.open();
-        iDoc.write('<form method="POST" action="'+GFORM_V2+'">');
-        for(const [k,v] of Object.entries(data))
-          iDoc.write('<input type="hidden" name="'+k+'" value="'+(v||'')+'">');
-        iDoc.write('</form>');
-        iDoc.close();
-        iDoc.forms[0].submit();
-        setTimeout(function(){ try{document.body.removeChild(iframe);}catch(e){} },3000);
-      }catch(e){}
-    },500);
   }catch(e){}
 }
 
@@ -3081,6 +3117,7 @@ window.addEventListener('load',()=>{
   setLang('fr');
   showOnlineTab('create');
 });
+
 </script>
 
 </body>
