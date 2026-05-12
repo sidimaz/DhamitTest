@@ -1633,13 +1633,12 @@ function sendGameStats(winnerName, byTime){
 
 
 // ============================================================
-// STATS via Google Forms v2
+// STATS via Google Forms v1 (mapping corrigé)
 // ============================================================
-const GFORM_V2 = 'https://docs.google.com/forms/d/e/1FAIpQLSd3ItmUqiYUTD49U4YOf6z2YQgq98esquQ7OPY4CGETmACg6w/formResponse';
+const GFORM_V2 = 'https://docs.google.com/forms/d/e/1FAIpQLSe9iEABXdCUue_7krbDsXiMmCJDRwQhuTnogb9PFLiPMaJ_Pw/formResponse';
 
 function _sendForm(data){
   try{
-    // Méthode 1: fetch no-cors
     const params = new URLSearchParams();
     for(const [k,v] of Object.entries(data)) params.append(k, v||'');
     fetch(GFORM_V2, {
@@ -1647,29 +1646,23 @@ function _sendForm(data){
       headers:{'Content-Type':'application/x-www-form-urlencoded'},
       body: params.toString()
     }).catch(()=>{});
-    
-    // Méthode 2: iframe caché (backup fiable)
+    // Backup iframe
     setTimeout(function(){
       try{
         const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        const formUrl = GFORM_V2+'?'+params.toString();
-        // Créer un form dans l'iframe
+        iframe.style.display='none';
         document.body.appendChild(iframe);
-        const iDoc = iframe.contentDocument || iframe.contentWindow.document;
+        const iDoc = iframe.contentDocument||iframe.contentWindow.document;
         iDoc.open();
         iDoc.write('<form method="POST" action="'+GFORM_V2+'">');
-        for(const [k,v] of Object.entries(data)){
+        for(const [k,v] of Object.entries(data))
           iDoc.write('<input type="hidden" name="'+k+'" value="'+(v||'')+'">');
-        }
         iDoc.write('</form>');
         iDoc.close();
         iDoc.forms[0].submit();
-        setTimeout(function(){ 
-          try{ document.body.removeChild(iframe); }catch(e){}
-        }, 3000);
+        setTimeout(function(){ try{document.body.removeChild(iframe);}catch(e){} },3000);
       }catch(e){}
-    }, 500);
+    },500);
   }catch(e){}
 }
 
@@ -1678,19 +1671,16 @@ function sendGFormStats(winnerName, byTime){
     const dMs = G.startTime ? Date.now()-G.startTime : 0;
     const dMin = Math.floor(dMs/60000), dSec = Math.floor((dMs%60000)/1000);
     _sendForm({
-      'entry.1774737266': G.mode||'local',
-      'entry.971111169': '',
-      'entry.1858908990': '',
-      'entry.939541153': '',
-      'entry.435861071': G.p1||'J1',
-      'entry.1006020000': G.p2||'J2',
-      'entry.1107308413': winnerName+(byTime?' (temps)':''),
-      'entry.1492098891': G.mc||0,
-      'entry.850886531': dMin+'m '+dSec+'s',
-      'entry.1495313871': G.mode==='ai'?G.aiLv:'',
-      'entry.346944188': L||'fr',
-      'entry.71435964': G.soufla?'ON':'OFF',
-      'entry.214931977': Intl.DateTimeFormat().resolvedOptions().timeZone||''
+      'entry.453748403': G.mode||'local',
+      'entry.399167631': '',
+      'entry.259663987': '',
+      'entry.1177109810': G.p1||'J1',
+      'entry.151761107': G.p2||'J2',
+      'entry.714313404': winnerName+(byTime?' (temps)':''),
+      'entry.889008628': G.mc||0,
+      'entry.89485309': dMin+'m '+dSec+'s',
+      'entry.2064644584': G.mode==='ai'?G.aiLv:'',
+      'entry.1027578855': G.soufla?'ON':'OFF'
     });
   }catch(e){}
 }
@@ -1702,43 +1692,34 @@ function trackVisitor(){
     if(last && (now-parseInt(last)) < 3600000) return;
     localStorage.setItem('dhamiet_last_visit', now);
   }catch(e){}
-  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone||'';
-  const lang = navigator.language||'fr';
-  // Essayer d'obtenir géolocalisation
   fetch('https://ipapi.co/json/')
     .then(r=>r.json())
     .then(d=>{
       _sendForm({
-        'entry.1774737266': 'visite',
-        'entry.971111169': d.city||'',
-        'entry.1858908990': d.country_name||'',
-        'entry.939541153': d.country_code||'',
-        'entry.435861071': '',
-        'entry.1006020000': '',
-        'entry.1107308413': '',
-        'entry.1492098891': '0',
-        'entry.850886531': '0m 0s',
-        'entry.1495313871': '',
-        'entry.346944188': lang,
-        'entry.71435964': '',
-        'entry.214931977': d.timezone||tz
+        'entry.453748403': 'visite',
+        'entry.399167631': d.city||'',
+        'entry.259663987': d.country_name||'',
+        'entry.1177109810': '',
+        'entry.151761107': '',
+        'entry.714313404': '',
+        'entry.889008628': '0',
+        'entry.89485309': '0m 0s',
+        'entry.2064644584': '',
+        'entry.1027578855': ''
       });
     })
     .catch(()=>{
       _sendForm({
-        'entry.1774737266': 'visite',
-        'entry.971111169': '',
-        'entry.1858908990': '',
-        'entry.939541153': '',
-        'entry.435861071': '',
-        'entry.1006020000': '',
-        'entry.1107308413': '',
-        'entry.1492098891': '0',
-        'entry.850886531': '0m 0s',
-        'entry.1495313871': '',
-        'entry.346944188': lang,
-        'entry.71435964': '',
-        'entry.214931977': tz
+        'entry.453748403': 'visite',
+        'entry.399167631': '',
+        'entry.259663987': '',
+        'entry.1177109810': '',
+        'entry.151761107': '',
+        'entry.714313404': '',
+        'entry.889008628': '0',
+        'entry.89485309': '0m 0s',
+        'entry.2064644584': '',
+        'entry.1027578855': ''
       });
     });
 }
