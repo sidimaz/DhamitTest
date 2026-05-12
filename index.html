@@ -1313,20 +1313,13 @@ function doMove(from, to){
         G.sel=null; G.valid=[]; G.chainPiece=null;
         switchTurn(); return;
       }
-      // Mode soufla: gérer la chaîne
-      if(!G.soufla){
-        // Mode MANUEL: timer 15s démarre, joueur peut retoucher pour reset
-        // NE PAS passer le tour — le timer le fera après 15s
-        G.sel=null; G.valid=[];
-        G.chainPiece={c:to.c,r:to.r};
-        startChainTimer15({c:to.c,r:to.r}, more);
-        renderBoard(); updateUI(); return;
-      }
-      // Soufla ON: forcer la continuation
+      // Mode soufla ON ou OFF: afficher les captures possibles
       G.sel={c:to.c, r:to.r};
       G.valid=more;
       G.chainPiece={c:to.c, r:to.r};
       renderBoard(); updateUI(); toast(t('ch'),2000);
+      // Timer 15s: si joueur ne continue pas → action selon mode
+      startChainTimer15({c:to.c,r:to.r}, more);
       if(G.mode==='ai'&&G.turn==='green'){
         setTimeout(()=>{
           if(G.chainPiece&&G.valid.length>0)
@@ -2752,8 +2745,8 @@ window.addEventListener('load', function(){
 
 // Timer 15s chaîne incomplète
 function startChainTimer15(piecePos, possibleKills){
-  // Annuler tout timer précédent
   if(G._chain15) clearTimeout(G._chain15);
+  if(G._chain15pass) clearTimeout(G._chain15pass);
   G._chain15Pos = piecePos;
   G._chain15Kills = possibleKills;
   G._chain15 = setTimeout(function(){
@@ -2764,27 +2757,25 @@ function startChainTimer15(piecePos, possibleKills){
     const moreKills = pieceKills(piecePos.c, piecePos.r, p);
     if(!moreKills.length) return;
     if(G.soufla){
-      // Mode AUTO: soufla immédiate
-      G.chainPiece = null;
+      // Mode AUTO: soufla immédiate — pièce retirée, tour adversaire
+      G.sel=null; G.valid=[]; G.chainPiece=null;
       triggerSoufla(p.t, [piecePos]);
     } else {
-      // Mode MANUEL: alerter l'adversaire
+      // Mode MANUEL: alerter l'adversaire, il peut réclamer
       const oppName = p.t==='red' ? G.p2 : G.p1;
       const sfb = document.getElementById('sfb');
       sfb.textContent = L==='ar'
-        ? '⏱ 15ث — ' + oppName + ' يمكنه المطالبة بسوفلة! اضغط 🚨'
+        ? '⏱ 15ث — ' + oppName + ' يمكنه المطالبة! اضغط 🚨'
         : '⏱ 15s — ' + oppName + ' peut réclamer Soufla ! Appuyez 🚨';
       sfb.style.display = 'block';
       flashCell(piecePos.c, piecePos.r, 'rgba(255,165,0,.6)');
       G._canClaim15 = piecePos;
-      // Passer le tour après encore 15s si pas de réclamation
+      // Passer le tour après 15s supplémentaires si pas de réclamation
       G._chain15pass = setTimeout(function(){
-        if(G._canClaim15){
-          G._canClaim15 = null;
-          sfb.style.display = 'none';
-          G.chainPiece = null;
-          switchTurn();
-        }
+        G._canClaim15 = null;
+        sfb.style.display = 'none';
+        G.sel=null; G.valid=[]; G.chainPiece=null;
+        switchTurn();
       }, 15000);
     }
   }, 15000);
