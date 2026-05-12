@@ -1366,14 +1366,17 @@ function buildKillMap(color){
 
 // Count the maximum number of captures in the best chain from (c,r)
 function maxChainKills(board,c,r,p,depth){
-  if(depth>8) return 0; // prevent infinite recursion
+  if(depth>8) return 0;
   const kills=pieceKillsOnBoard(board,c,r,p);
   if(!kills.length) return 0;
   let best=0;
   for(const k of kills){
-    const nb=board.map(row=>[...row]);
+    // Deep clone pour éviter les bugs de référence
+    const nb=board.map(row=>row.map(pc=>pc?{t:pc.t,s:pc.s}:null));
     const pp=nb[r][c]; nb[k.r][k.c]=pp; nb[r][c]=null;
     if(k.cap) nb[k.cap.r][k.cap.c]=null;
+    // Promotion sultan dans la simulation
+    if(pp&&!pp.s&&((pp.t==='red'&&k.r===0)||(pp.t==='green'&&k.r===8))) pp.s=true;
     const chain=maxChainKills(nb,k.c,k.r,pp,depth+1);
     best=Math.max(best,1+chain);
   }
@@ -1428,12 +1431,18 @@ function checkSoufla(from, to, cap, killMap){
   // Règle du nombre égal: si movingMax >= globalMax → libre choix → pas de soufla
   if(movingMax >= globalMax) return null;
   // Soufla sur les pièces qui avaient STRICTEMENT plus que la pièce jouée
+  // ET qui peuvent ENCORE capturer sur le plateau actuel (après le coup)
   for(const [key,val] of Object.entries(killMap)){
     const [kc,kr] = key.split(',').map(Number);
     if(kc===from.c&&kr===from.r) continue;
     if(val > movingMax){
-      if(G.board[kr]&&G.board[kr][kc]&&!faulty.some(x=>x.c===kc&&x.r===kr))
-        faulty.push({c:kc,r:kr});
+      const p=G.board[kr]&&G.board[kr][kc];
+      if(p){
+        // Vérifier que cette pièce peut ENCORE capturer maintenant
+        const stillCanKill=pieceKills(kc,kr,p).length>0;
+        if(stillCanKill&&!faulty.some(x=>x.c===kc&&x.r===kr))
+          faulty.push({c:kc,r:kr});
+      }
     }
   }
   return faulty.length?faulty:null;
