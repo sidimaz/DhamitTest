@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 
 <html lang="fr">
 <head>
@@ -1407,12 +1407,13 @@ function pieceKillsOnBoard(board,c,r,p){
 // Returns array of faulty piece positions, or null if no soufla
 function checkSoufla(from, to, cap, killMap){
   if(!Object.keys(killMap).length) return null;
+  // Trouver le maximum global disponible AVANT ce coup
   let globalMax = 0;
   for(const v of Object.values(killMap)) if(v > globalMax) globalMax = v;
   const movingKey = from.c+','+from.r;
-  // Si la pièce a capturé mais n'est pas dans killMap → au moins 1 capture
   const movingMax = killMap[movingKey] || (cap ? 1 : 0);
   const faulty = [];
+  // CAS 1: Pas de capture faite alors que possible
   if(!cap){
     for(const [key] of Object.entries(killMap)){
       const [kc,kr] = key.split(',').map(Number);
@@ -1423,7 +1424,10 @@ function checkSoufla(from, to, cap, killMap){
     }
     return faulty.length?faulty:null;
   }
+  // CAS 2: Capture faite mais une autre pièce pouvait capturer PLUS
+  // Règle du nombre égal: si movingMax >= globalMax → libre choix → pas de soufla
   if(movingMax >= globalMax) return null;
+  // Soufla sur les pièces qui avaient STRICTEMENT plus que la pièce jouée
   for(const [key,val] of Object.entries(killMap)){
     const [kc,kr] = key.split(',').map(Number);
     if(kc===from.c&&kr===from.r) continue;
@@ -2193,44 +2197,48 @@ function getAllMoves(board,col){
 
 function moveOrder(board,mv,col){
   let s=0;
-  const opp=col==='red'?'green':'red';
-
-  // 1. CAPTURES: priorité absolue
+  // 1. CAPTURES: priorité absolue + bonus chaîne longue
   if(mv.to.cap){
     const cp=board[mv.to.cap.r][mv.to.cap.c];
     s+=cp?(cp.s?1500:500):500;
-    // Bonus chaîne
+    // Calculer longueur MAX chaîne depuis cette position
     const nb=cloneB(board); applyB(nb,mv.from,mv.to);
     const pp=nb[mv.to.r][mv.to.c];
-    if(pp) s+=getKillsB(nb,mv.to.c,mv.to.r,pp).length*300;
-    // Bonus si pièce capturée était menacée par nous
+    if(pp){
+      const chainLen=maxChainKillsB(nb,mv.to.c,mv.to.r,pp,0);
+      s+=chainLen*600; // Très fort bonus pour chaînes longues
+    }
     if(cp&&countThreatScore(board,mv.to.cap.c,mv.to.cap.r,col)>0) s+=200;
   }
-
   // 2. PROMOTION SULTAN
   if((col==='green'&&mv.to.r===BS-1)||(col==='red'&&mv.to.r===0)) s+=1000;
-
-  // 3. SÉCURITÉ: pénalité forte si coup dangereux
+  // 3. SÉCURITÉ
   const afterBoard=cloneB(board); applyB(afterBoard,mv.from,mv.to);
   const threats=countThreatScore(afterBoard,mv.to.c,mv.to.r,col);
-  if(threats>0) s-=800*threats; // Très forte pénalité
-
-  // 4. FUIR: bonus si pièce actuelle est menacée
+  if(threats>0) s-=800*threats;
+  // 4. FUIR si pièce menacée
   const currentThreat=countThreatScore(board,mv.from.c,mv.from.r,col);
   if(currentThreat>0) s+=400;
-
-  // 5. MENACER: bonus si après le coup on menace l'adversaire
+  // 5. MENACER après le coup
   const pp2=afterBoard[mv.to.r][mv.to.c];
   if(pp2) s+=getKillsB(afterBoard,mv.to.c,mv.to.r,pp2).length*100;
-
-  // 6. AVANCEMENT: bonus modéré (ne plus foncer bêtement)
+  // 6. AVANCEMENT
   const adv=col==='green'?mv.to.r:(BS-1-mv.to.r);
-  s+=adv*5; // Réduit de 12 à 5
-
-  // 7. CENTRE: léger bonus
-  s+=(4-Math.abs(mv.to.c-4))*4;
-
+  s+=adv*5+(4-Math.abs(mv.to.c-4))*4;
   return s;
+}
+
+function maxChainKillsB(board,c,r,p,depth){
+  if(depth>8) return 0;
+  const kills=getKillsB(board,c,r,p);
+  if(!kills.length) return 0;
+  let best=0;
+  for(const k of kills){
+    const nb=cloneB(board); applyB(nb,{c,r},k);
+    const np=nb[k.r][k.c];
+    if(np) best=Math.max(best,1+maxChainKillsB(nb,k.c,k.r,np,depth+1));
+  }
+  return best;
 }
 
 
