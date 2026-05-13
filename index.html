@@ -818,7 +818,13 @@ function showScreen(id){
 }
 function showSetup(m){
   gmode=m;
-  setTimeout(function(){ if(typeof updateP1ColDisplay==='function') updateP1ColDisplay(); },100);
+  setTimeout(function(){
+    if(typeof updateP1ColDisplay==='function') updateP1ColDisplay();
+    if(typeof updateWhosOptions==='function'){
+      const col=document.getElementById('p1col');
+      updateWhosOptions(col?col.value:'red');
+    }
+  },100);
   document.getElementById('ailg').style.display=m==='ai'?'block':'none';
   document.getElementById('p2g').style.display=m==='ai'?'none':'block';
   showScreen('setup-screen');
@@ -972,27 +978,42 @@ function startGame(){
   const p2=document.getElementById('p2n').value.trim()||t('p2d');
   // Récupérer la couleur choisie pour Joueur 1
   const p1Color=document.getElementById('p1col')?document.getElementById('p1col').value:'red';
-  G._p1Color=p1Color;
-  G._p2Color=p1Color==='red'?'green':'red';
   const ail=parseInt(document.getElementById('ail').value)||3;
   let starter=document.getElementById('whos').value;
   const tmin=parseInt(document.getElementById('tset').value)||0;
-  const sofOn=true; // Soufla always starts ON, can be toggled in-game
+  const sofOn=true;
   if(starter==='random') starter=Math.random()<.5?'red':'green';
   if(timerInt) clearInterval(timerInt);
   const p2n=gmode==='ai'?`${t('ain')} (${t('alv')}${ail})`:p2;
+  // Si Joueur 1 choisit crottes (green): inverser les noms
+  // red=bâtons(bas), green=crottes(haut) — toujours
+  // Joueur 1 choisit green → son nom va côté green, Joueur 2 côté red
+  const nameRed = p1Color==='red' ? p1 : p2n;
+  const nameGreen = p1Color==='red' ? p2n : p1;
   G={
     board:initBoard(), turn:starter,
     phase:'atk', atkDone:false,
     sel:null, valid:[], hist:[],
     log:[], capR:0, capG:0,
-    p1, p2:p2n, mode:gmode, aiLv:ail,
+    p1:nameRed, p2:nameGreen, mode:gmode, aiLv:ail,
     over:false, lastMove:null,
     soufla:sofOn, sfMode:false, sfOff:null, sfTgt:[],
     tpp:tmin*60, timers:{red:tmin*60,green:tmin*60}, mc:0,
+    p1Color:p1Color,
   };
-  document.getElementById('p1dn').textContent=G.p1;
-  document.getElementById('p2dn').textContent=G.p2;
+  // Panel gauche: afficher le bon SVG selon couleur choisie
+  const svgB='<svg viewBox="0 0 36 80" style="width:12px;height:22px;display:inline-block;vertical-align:middle;margin-right:4px"><defs><linearGradient id="wgp" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8C060"/><stop offset="45%" stop-color="#C08820"/><stop offset="100%" stop-color="#7A5010"/></linearGradient><linearGradient id="wsp" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#9A6818"/><stop offset="50%" stop-color="#C89228"/><stop offset="100%" stop-color="#8A5810"/></linearGradient></defs><rect x="15" y="32" width="6" height="42" rx="3" fill="url(#wsp)"/><ellipse cx="18" cy="20" rx="14" ry="17" fill="url(#wgp)"/></svg>';
+  const svgD='<svg viewBox="0 0 36 46" style="width:14px;height:18px;display:inline-block;vertical-align:middle;margin-right:4px"><defs><radialGradient id="dgp" cx="36%" cy="30%" r="65%"><stop offset="0%" stop-color="#6B3E1E"/><stop offset="55%" stop-color="#2E1508"/><stop offset="100%" stop-color="#150903"/></radialGradient></defs><path d="M18,3 C27,3 33,9 33,18 C33,28 26,38 18,43 C10,38 3,28 3,18 C3,9 9,3 18,3Z" fill="url(#dgp)"/></svg>';
+  // p1dn = nom côté red (bâtons), p2dn = nom côté green (crottes)
+  const p1dn=document.getElementById('p1dn');
+  const p2dn=document.getElementById('p2dn');
+  if(p1dn) p1dn.innerHTML=svgB+G.p1;
+  if(p2dn) p2dn.innerHTML=svgD+G.p2;
+  // Compteurs captures: p1cap=bâtons capturés par green, p2cap=crottes capturés par red
+  const c1l=document.getElementById('cap1l');
+  const c2l=document.getElementById('cap2l');
+  if(c1l) c1l.innerHTML=svgB+' a pris :';
+  if(c2l) c2l.innerHTML=svgD+' a pris :';
   buildGrid(); drawLines(); renderBoard(); updateUI();
   showScreen('game-screen');
   setTimeout(sizeBoard,60);
@@ -1974,6 +1995,16 @@ window.debugStats = debugStats;
 function onP1ColChange(){
   const val=document.getElementById('p1col').value;
   updateP2Label(val);
+  updateWhosOptions(val);
+}
+function updateWhosOptions(p1Color){
+  const p1n=document.getElementById('p1n').value.trim()||t('p1d');
+  const p2n=document.getElementById('p2n').value.trim()||t('p2d');
+  const isP1Baton=p1Color==='red';
+  const op1=document.getElementById('o-p1');
+  const op2=document.getElementById('o-p2');
+  if(op1) op1.textContent=(isP1Baton?'🪄 ':' 🫘 ')+(p1n||'Joueur 1')+(isP1Baton?' — Bâtons (bas)':' — Crottes (haut)');
+  if(op2) op2.textContent=(isP1Baton?'🫘 ':'🪄 ')+(p2n||'Joueur 2')+(isP1Baton?' — Crottes (haut)':' — Bâtons (bas)');
 }
 function updateP2Label(p1Color){
   const p2color=p1Color==='red'?'green':'red';
