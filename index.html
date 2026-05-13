@@ -301,13 +301,14 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
 .sttl2,.mhist,.ibox{display:none}.rp{display:none}
 }
 
-.cs-wrap{position:relative}
+.cs-wrap{position:relative;z-index:10}
 .cs-btn{width:100%;padding:10px 13px;background:rgba(255,255,255,.13);border:1.5px solid rgba(201,147,58,.48);border-radius:8px;color:#FFF;font-family:inherit;font-size:.88rem;cursor:pointer;display:flex;align-items:center;gap:6px;justify-content:space-between;text-align:left}
-.cs-btn::after{content:‘▼’;color:var(–gold);font-size:.7rem;margin-left:auto}
-.cs-list{position:absolute;top:calc(100% + 3px);left:0;right:0;background:#2D1A08;border:1.5px solid rgba(201,147,58,.48);border-radius:8px;display:none;z-index:50;overflow:hidden}
+.cs-btn::after{content:‘▼’;color:var(–gold);font-size:.7rem;margin-left:auto;flex-shrink:0}
+.cs-list{position:absolute;top:calc(100% + 3px);left:0;right:0;background:#221508;border:1.5px solid rgba(201,147,58,.6);border-radius:8px;display:none;z-index:100;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.8)}
 .cs-list.open{display:block}
-.cs-opt{padding:10px 13px;cursor:pointer;color:#FFF;font-size:.88rem;display:flex;align-items:center;gap:6px;border-bottom:1px solid rgba(201,147,58,.1)}
-.cs-opt:hover,.cs-opt.sel{background:rgba(201,147,58,.2)}
+.cs-opt{padding:11px 13px;cursor:pointer;color:#FFF;font-size:.88rem;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(201,147,58,.15);background:#221508;transition:background .15s}
+.cs-opt:hover{background:rgba(201,147,58,.25)}
+.cs-opt.sel{background:rgba(201,147,58,.2);color:var(–gold-l)}
 .cs-opt:last-child{border-bottom:none}
 
 .dbg-panel{position:fixed;top:5px;left:5px;background:rgba(0,0,0,.92);color:#0F0;padding:8px 12px;border:1px solid #0F0;border-radius:6px;font-family:monospace;font-size:.7rem;z-index:9999;max-width:280px;max-height:90vh;overflow-y:auto;white-space:pre-wrap}
@@ -342,7 +343,7 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
       </div>
     </div>
           <button class="mbtn mbtn-dark" onclick="installPWA()" id="btn-pwa" style="display:none"><span>📲 Installer l'application</span></button>
-    <div class="ver">DHAMIÉ v8.1 • Sidimaz</div>
+    <div class="ver">DHAMIÉ v8.2 • Sidimaz</div>
   </div>
 </div>
 
@@ -353,11 +354,11 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
     <div class="sttl" id="s-ttl">Configuration</div>
     <div id="lf">
       <div class="fg">
-        <label class="fl" id="l-p1"><svg viewBox="0 0 36 80" style="width:18px;height:32px;display:inline-block;vertical-align:middle"><defs><linearGradient id="wgm" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8C060"/><stop offset="45%" stop-color="#C08820"/><stop offset="100%" stop-color="#7A5010"/></linearGradient><linearGradient id="wsm" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#9A6818"/><stop offset="50%" stop-color="#C89228"/><stop offset="100%" stop-color="#8A5810"/></linearGradient></defs><rect x="15" y="32" width="6" height="42" rx="3" fill="url(#wsm)"/><ellipse cx="18" cy="20" rx="14" ry="17" fill="url(#wgm)"/><ellipse cx="12" cy="12" rx="5" ry="7" fill="rgba(255,255,255,.25)" transform="rotate(-15,12,12)"/></svg> Joueur 1 (bâtons dorés — bas)</label>
+        <label class="fl" id="l-p1">Joueur 1</label>
         <input class="fi" id="p1n" type="text" placeholder="Joueur 1" autocomplete="off">
       </div>
       <div class="fg" id="p2g">
-        <label class="fl" id="l-p2"><svg viewBox="0 0 36 46" style="width:18px;height:24px;display:inline-block;vertical-align:middle"><defs><radialGradient id="dgm" cx="36%" cy="30%" r="65%"><stop offset="0%" stop-color="#6B3E1E"/><stop offset="55%" stop-color="#2E1508"/><stop offset="100%" stop-color="#150903"/></radialGradient></defs><path d="M18,3 C27,3 33,9 33,18 C33,28 26,38 18,43 C10,38 3,28 3,18 C3,9 9,3 18,3Z" fill="url(#dgm)"/><ellipse cx="12" cy="13" rx="4" ry="5" fill="rgba(255,255,255,.2)" transform="rotate(-20,12,13)"/></svg> Joueur 2 (crottes noires — haut)</label>
+        <label class="fl" id="l-p2">Joueur 2</label>
         <input class="fi" id="p2n" type="text" placeholder="Joueur 2" autocomplete="off">
       </div>
       <div class="fg" id="ailg" style="display:none">
@@ -729,7 +730,7 @@ fr:{
   bLocal:'♟ Jeu local (2 joueurs)',bAI:"🤖 Contre l'ordinateur",
   bRules:'📖 Règles du jeu',bShare:"🔗 Partager l'application",bOnline:'🌐 Jouer en ligne',
   sTtl:'Configuration',
-  lP1:'<svg viewBox="0 0 36 80" style="width:13px;height:24px;display:inline-block;vertical-align:middle;margin-right:3px"><defs><linearGradient id="wgx" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8C060"/><stop offset="45%" stop-color="#C08820"/><stop offset="100%" stop-color="#7A5010"/></linearGradient><linearGradient id="wsx" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#9A6818"/><stop offset="50%" stop-color="#C89228"/><stop offset="100%" stop-color="#8A5810"/></linearGradient></defs><rect x="15" y="32" width="6" height="42" rx="3" fill="url(#wsx)"/><ellipse cx="18" cy="20" rx="14" ry="17" fill="url(#wgx)"/></svg> Joueur 1 (bâtons dorés — bas)',lP2:'<svg viewBox="0 0 36 46" style="width:15px;height:20px;display:inline-block;vertical-align:middle;margin-right:3px"><defs><radialGradient id="dgx" cx="36%" cy="30%" r="65%"><stop offset="0%" stop-color="#6B3E1E"/><stop offset="55%" stop-color="#2E1508"/><stop offset="100%" stop-color="#150903"/></radialGradient></defs><path d="M18,3 C27,3 33,9 33,18 C33,28 26,38 18,43 C10,38 3,28 3,18 C3,9 9,3 18,3Z" fill="url(#dgx)"/></svg> Joueur 2 (crottes noires — haut)',
+  lP1:'Joueur 1',lP2:'Joueur 2',
   lAI:'Niveau IA',lWho:'Qui fait la Werde ?',lTime:'Temps par joueur',lSof:'Règle Soufla',
   oP1:'🪄 Joueur 1 — Bâtons (bas)',oP2:'🫘 Joueur 2 — Crottes (haut)',oRnd:'Aléatoire',oT0:'Sans limite',
   e:'Facile',m:'Moyen',h:'Difficile',x:'Expert',
@@ -762,7 +763,7 @@ ar:{
   bLocal:'♟ لعب محلي (لاعبان)',bAI:'🤖 ضد الحاسوب',
   bRules:'📖 قواعد اللعبة',bShare:'🔗 مشاركة التطبيق',bOnline:'🌐 لعب عبر الإنترنت',
   sTtl:'إعداد اللعبة',
-  lP1:'<svg viewBox="0 0 36 80" style="width:13px;height:24px;display:inline-block;vertical-align:middle;margin-right:3px"><defs><linearGradient id="wgx" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8C060"/><stop offset="45%" stop-color="#C08820"/><stop offset="100%" stop-color="#7A5010"/></linearGradient><linearGradient id="wsx" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#9A6818"/><stop offset="50%" stop-color="#C89228"/><stop offset="100%" stop-color="#8A5810"/></linearGradient></defs><rect x="15" y="32" width="6" height="42" rx="3" fill="url(#wsx)"/><ellipse cx="18" cy="20" rx="14" ry="17" fill="url(#wgx)"/></svg> اللاعب الأول (عصي ذهبية — أسفل)',lP2:'<svg viewBox="0 0 36 46" style="width:15px;height:20px;display:inline-block;vertical-align:middle;margin-right:3px"><defs><radialGradient id="dgx" cx="36%" cy="30%" r="65%"><stop offset="0%" stop-color="#6B3E1E"/><stop offset="55%" stop-color="#2E1508"/><stop offset="100%" stop-color="#150903"/></radialGradient></defs><path d="M18,3 C27,3 33,9 33,18 C33,28 26,38 18,43 C10,38 3,28 3,18 C3,9 9,3 18,3Z" fill="url(#dgx)"/></svg> اللاعب الثاني (براز — أعلى)',
+  lP1:'اللاعب الأول',lP2:'اللاعب الثاني',
   lAI:'مستوى الحاسوب',lWho:'من يبدأ بالوردة؟',lTime:'توقيت لكل لاعب',lSof:'قاعدة السوفلة',
   oP1:'🪄 اللاعب الأول — عصي (أسفل)',oP2:'🫘 اللاعب الثاني — براز (أعلى)',oRnd:'عشوائي',oT0:'بدون توقيت',
   e:'سهل',m:'متوسط',h:'صعب',x:'خبير',
@@ -2194,10 +2195,12 @@ function getMovesB(board,c,r,p){
 
 function aiTurn(){
   if(G.over||G.turn!=='green') return;
+  const _aiStart=Date.now(); // Mesure temps réflexion réel
   if(G.phase==='atk'){
     const wf={c:5,r:3};
     if(G.board[wf.r]&&G.board[wf.r][wf.c]&&G.board[wf.r][wf.c].t==='green')
       doMove(wf,{c:MC,r:MR});
+    if(G.tpp>0) G.timers.green=Math.max(0,G.timers.green-(Date.now()-_aiStart)/1000);
     return;
   }
   const lvl=Math.min(G.aiLv,4);
@@ -2225,7 +2228,7 @@ function aiTurn(){
     legalMoves=moves;
   }
   if(lvl===1){
-    doMoveAI(legalMoves[Math.floor(Math.random()*legalMoves.length)]); return;
+    doMoveAI(legalMoves[Math.floor(Math.random()*legalMoves.length)],_aiStart); return;
   }
   let best=null,bestScore=-999999;
   legalMoves.sort((a,b)=>moveOrder(G.board,b,'green')-moveOrder(G.board,a,'green'));
@@ -2240,10 +2243,10 @@ function aiTurn(){
       score=-negamax(nb,'red',depth-1,-999999,999999,'green');
     if(score>bestScore){bestScore=score;best=mv;}
   }
-  doMoveAI(best||moves[0]);
+  doMoveAI(best||moves[0], _aiStart);
 }
 
-function doMoveAI(mv){
+function doMoveAI(mv,_aiStart){
   if(!mv) return;
   const p=G.board[mv.from.r][mv.from.c];
   if(!p||p.t!=='green') return;
@@ -2252,6 +2255,12 @@ function doMoveAI(mv){
     const fb=getAllMoves(G.board,'green');
     if(fb.length){const m2=fb[0];const p2=G.board[m2.from.r][m2.from.c];if(p2&&p2.t==='green')doMove(m2.from,m2.to);}
     return;
+  }
+  // Déduire le temps de réflexion réel du timer IA
+  if(_aiStart&&G.tpp>0){
+    const elapsed=(Date.now()-_aiStart)/1000;
+    G.timers.green=Math.max(0,G.timers.green-elapsed);
+    updTimers();
   }
   aiMoveHistory.push({board:cloneB(G.board),turn:'green',from:mv.from.c+','+mv.from.r,to:mv.to.c+','+mv.to.r});
   doMove(mv.from,mv.to);
@@ -3303,6 +3312,18 @@ function selectP1Col(val){
   updateP1ColDisplay();
   document.getElementById('p1col-list').classList.remove('open');
   document.querySelectorAll('#p1col-list .cs-opt').forEach(o=>o.classList.remove('sel'));
+  // Mettre à jour les labels Joueur 2 automatiquement
+  updateP2Label(val);
+}
+function updateP2Label(p1Color){
+  const p2color=p1Color==='red'?'green':'red';
+  const SVG_B='<svg viewBox="0 0 36 80" style="width:13px;height:24px;display:inline-block;vertical-align:middle;margin-right:3px"><defs><linearGradient id="wgx" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8C060"/><stop offset="45%" stop-color="#C08820"/><stop offset="100%" stop-color="#7A5010"/></linearGradient><linearGradient id="wsx" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#9A6818"/><stop offset="50%" stop-color="#C89228"/><stop offset="100%" stop-color="#8A5810"/></linearGradient></defs><rect x="15" y="32" width="6" height="42" rx="3" fill="url(#wsx)"/><ellipse cx="18" cy="20" rx="14" ry="17" fill="url(#wgx)"/></svg>';
+  const SVG_D='<svg viewBox="0 0 36 46" style="width:15px;height:20px;display:inline-block;vertical-align:middle;margin-right:3px"><defs><radialGradient id="dgx" cx="36%" cy="30%" r="65%"><stop offset="0%" stop-color="#6B3E1E"/><stop offset="55%" stop-color="#2E1508"/><stop offset="100%" stop-color="#150903"/></radialGradient></defs><path d="M18,3 C27,3 33,9 33,18 C33,28 26,38 18,43 C10,38 3,28 3,18 C3,9 9,3 18,3Z" fill="url(#dgx)"/></svg>';
+  const lp2=document.getElementById('l-p2');
+  if(lp2) lp2.innerHTML=(p2color==='red'?SVG_B+'Bâtons (bas)':SVG_D+'Crottes (haut)');
+  // Mettre à jour aussi le label de cap
+  const c2l=document.getElementById('cap2l');
+  if(c2l) c2l.innerHTML=(p2color==='red'?SVG_B:'<svg viewBox="0 0 36 46" style="width:15px;height:20px;display:inline-block;vertical-align:middle;margin-right:3px"><defs><radialGradient id="dgx2" cx="36%" cy="30%" r="65%"><stop offset="0%" stop-color="#6B3E1E"/><stop offset="55%" stop-color="#2E1508"/><stop offset="100%" stop-color="#150903"/></radialGradient></defs><path d="M18,3 C27,3 33,9 33,18 C33,28 26,38 18,43 C10,38 3,28 3,18 C3,9 9,3 18,3Z" fill="url(#dgx2)"/></svg>')+" a pris :";
 }
 function updateP1ColDisplay(){
   const val=document.getElementById('p1col').value;
