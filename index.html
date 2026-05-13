@@ -343,7 +343,7 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
       </div>
     </div>
           <button class="mbtn mbtn-dark" onclick="installPWA()" id="btn-pwa" style="display:none"><span>📲 Installer l'application</span></button>
-    <div class="ver">DHAMIÉ v8.2 • Sidimaz</div>
+    <div class="ver">DHAMIÉ v8.3 • Sidimaz</div>
   </div>
 </div>
 
@@ -370,30 +370,18 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
       </div>
       <div class="fg" id="colorg">
         <label class="fl" id="l-color">Couleur du Joueur 1</label>
-        <div class="cs-wrap">
-          <input type="hidden" id="p1col" value="red">
-          <div class="cs-btn" id="p1col-btn" onclick="toggleP1Col()">
-            <span id="p1col-display"></span>
-          </div>
-          <div class="cs-list" id="p1col-list">
-            <div class="cs-opt sel" onclick="selectP1Col('red')" id="o-c1"></div>
-            <div class="cs-opt" onclick="selectP1Col('green')" id="o-c2"></div>
-          </div>
-        </div>
+        <select class="fs" id="p1col" onchange="onP1ColChange()">
+          <option value="red" id="o-c1">🪄 Bâtons dorés (bas)</option>
+          <option value="green" id="o-c2">🫘 Crottes noires (haut)</option>
+        </select>
       </div>
       <div class="fg">
         <label class="fl" id="l-who">Qui fait la Werde (premier coup) ?</label>
-        <div class="cs-wrap">
-          <input type="hidden" id="whos" value="red">
-          <div class="cs-btn" id="whos-btn" onclick="toggleCustomSelect()">
-            <span id="whos-display"><svg viewBox="0 0 36 80" style="width:14px;height:26px;display:inline-block;vertical-align:middle"><defs><linearGradient id="wgs" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8C060"/><stop offset="45%" stop-color="#C08820"/><stop offset="100%" stop-color="#7A5010"/></linearGradient><linearGradient id="wss" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#9A6818"/><stop offset="50%" stop-color="#C89228"/><stop offset="100%" stop-color="#8A5810"/></linearGradient></defs><rect x="15" y="32" width="6" height="42" rx="3" fill="url(#wss)"/><ellipse cx="18" cy="20" rx="14" ry="17" fill="url(#wgs)"/></svg> Joueur 1 — Bâtons (bas)</span>
-          </div>
-          <div class="cs-list" id="whos-list">
-            <div class="cs-opt sel" onclick="selectWho('red','<svg viewBox="0 0 36 80" style="width:14px;height:26px;display:inline-block;vertical-align:middle"><defs><linearGradient id="wgs" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8C060"/><stop offset="45%" stop-color="#C08820"/><stop offset="100%" stop-color="#7A5010"/></linearGradient><linearGradient id="wss" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#9A6818"/><stop offset="50%" stop-color="#C89228"/><stop offset="100%" stop-color="#8A5810"/></linearGradient></defs><rect x="15" y="32" width="6" height="42" rx="3" fill="url(#wss)"/><ellipse cx="18" cy="20" rx="14" ry="17" fill="url(#wgs)"/></svg> Joueur 1 — Bâtons (bas)')" id="o-p1"><svg viewBox="0 0 36 80" style="width:14px;height:26px;display:inline-block;vertical-align:middle"><defs><linearGradient id="wgs" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8C060"/><stop offset="45%" stop-color="#C08820"/><stop offset="100%" stop-color="#7A5010"/></linearGradient><linearGradient id="wss" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#9A6818"/><stop offset="50%" stop-color="#C89228"/><stop offset="100%" stop-color="#8A5810"/></linearGradient></defs><rect x="15" y="32" width="6" height="42" rx="3" fill="url(#wss)"/><ellipse cx="18" cy="20" rx="14" ry="17" fill="url(#wgs)"/></svg> <span>Joueur 1 — Bâtons (bas)</span></div>
-            <div class="cs-opt" onclick="selectWho('green','<svg viewBox="0 0 36 46" style="width:16px;height:22px;display:inline-block;vertical-align:middle"><defs><radialGradient id="dgs" cx="36%" cy="30%" r="65%"><stop offset="0%" stop-color="#6B3E1E"/><stop offset="55%" stop-color="#2E1508"/><stop offset="100%" stop-color="#150903"/></radialGradient></defs><path d="M18,3 C27,3 33,9 33,18 C33,28 26,38 18,43 C10,38 3,28 3,18 C3,9 9,3 18,3Z" fill="url(#dgs)"/></svg> Joueur 2 — Crottes (haut)')" id="o-p2"><svg viewBox="0 0 36 46" style="width:16px;height:22px;display:inline-block;vertical-align:middle"><defs><radialGradient id="dgs" cx="36%" cy="30%" r="65%"><stop offset="0%" stop-color="#6B3E1E"/><stop offset="55%" stop-color="#2E1508"/><stop offset="100%" stop-color="#150903"/></radialGradient></defs><path d="M18,3 C27,3 33,9 33,18 C33,28 26,38 18,43 C10,38 3,28 3,18 C3,9 9,3 18,3Z" fill="url(#dgs)"/></svg> <span>Joueur 2 — Crottes (haut)</span></div>
-            <div class="cs-opt" onclick="selectWho('random','🎲 Aléatoire')" id="o-rnd">🎲 <span>Aléatoire</span></div>
-          </div>
-        </div>
+        <select class="fs" id="whos">
+          <option value="red" id="o-p1">🪄 Joueur 1 — Bâtons (bas)</option>
+          <option value="green" id="o-p2">🫘 Joueur 2 — Crottes (haut)</option>
+          <option value="random" id="o-rnd">🎲 Aléatoire</option>
+        </select>
       </div>
       <div class="fg">
         <label class="fl" id="l-time">Temps par joueur</label>
@@ -732,7 +720,7 @@ fr:{
   sTtl:'Configuration',
   lP1:'Joueur 1',lP2:'Joueur 2',
   lAI:'Niveau IA',lWho:'Qui fait la Werde ?',lTime:'Temps par joueur',lSof:'Règle Soufla',
-  oP1:'🪄 Joueur 1 — Bâtons (bas)',oP2:'🫘 Joueur 2 — Crottes (haut)',oRnd:'Aléatoire',oT0:'Sans limite',
+  oP1:'🪄 Joueur 1 — Bâtons (bas)',oP2:'🫘 Joueur 2 — Crottes (haut)',oRnd:'Aléatoire',oT0:'Sans limite',lColor:'Couleur du Joueur 1',oC1:'🪄 Bâtons dorés (bas)',oC2:'🫘 Crottes noires (haut)',
   e:'Facile',m:'Moyen',h:'Difficile',x:'Expert',
   bk:'← Retour',st:'▶ Commencer',mn:'← Menu',ud:'↩',
   sCap:'Capturées',sHist:'Historique',c1:'<svg viewBox="0 0 36 80" style="width:13px;height:24px;display:inline-block;vertical-align:middle;margin-right:3px"><defs><linearGradient id="wgx" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8C060"/><stop offset="45%" stop-color="#C08820"/><stop offset="100%" stop-color="#7A5010"/></linearGradient><linearGradient id="wsx" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#9A6818"/><stop offset="50%" stop-color="#C89228"/><stop offset="100%" stop-color="#8A5810"/></linearGradient></defs><rect x="15" y="32" width="6" height="42" rx="3" fill="url(#wsx)"/><ellipse cx="18" cy="20" rx="14" ry="17" fill="url(#wgx)"/></svg> a pris :',c2:'<svg viewBox="0 0 36 46" style="width:15px;height:20px;display:inline-block;vertical-align:middle;margin-right:3px"><defs><radialGradient id="dgx" cx="36%" cy="30%" r="65%"><stop offset="0%" stop-color="#6B3E1E"/><stop offset="55%" stop-color="#2E1508"/><stop offset="100%" stop-color="#150903"/></radialGradient></defs><path d="M18,3 C27,3 33,9 33,18 C33,28 26,38 18,43 C10,38 3,28 3,18 C3,9 9,3 18,3Z" fill="url(#dgx)"/></svg> a pris :',
@@ -765,7 +753,7 @@ ar:{
   sTtl:'إعداد اللعبة',
   lP1:'اللاعب الأول',lP2:'اللاعب الثاني',
   lAI:'مستوى الحاسوب',lWho:'من يبدأ بالوردة؟',lTime:'توقيت لكل لاعب',lSof:'قاعدة السوفلة',
-  oP1:'🪄 اللاعب الأول — عصي (أسفل)',oP2:'🫘 اللاعب الثاني — براز (أعلى)',oRnd:'عشوائي',oT0:'بدون توقيت',
+  oP1:'🪄 اللاعب الأول — عصي (أسفل)',oP2:'🫘 اللاعب الثاني — براز (أعلى)',oRnd:'عشوائي',oT0:'بدون توقيت',lColor:'لون اللاعب الأول',oC1:'🪄 عصي ذهبية (أسفل)',oC2:'🫘 براز (أعلى)',
   e:'سهل',m:'متوسط',h:'صعب',x:'خبير',
   bk:'← رجوع',st:'▶ ابدأ',mn:'← القائمة',ud:'↩',
   sCap:'المأخوذة',sHist:'سجل الحركات',c1:'<svg viewBox="0 0 36 80" style="width:13px;height:24px;display:inline-block;vertical-align:middle;margin-right:3px"><defs><linearGradient id="wgx" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8C060"/><stop offset="45%" stop-color="#C08820"/><stop offset="100%" stop-color="#7A5010"/></linearGradient><linearGradient id="wsx" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#9A6818"/><stop offset="50%" stop-color="#C89228"/><stop offset="100%" stop-color="#8A5810"/></linearGradient></defs><rect x="15" y="32" width="6" height="42" rx="3" fill="url(#wsx)"/><ellipse cx="18" cy="20" rx="14" ry="17" fill="url(#wgx)"/></svg> أخذ:',c2:'<svg viewBox="0 0 36 46" style="width:15px;height:20px;display:inline-block;vertical-align:middle;margin-right:3px"><defs><radialGradient id="dgx" cx="36%" cy="30%" r="65%"><stop offset="0%" stop-color="#6B3E1E"/><stop offset="55%" stop-color="#2E1508"/><stop offset="100%" stop-color="#150903"/></radialGradient></defs><path d="M18,3 C27,3 33,9 33,18 C33,28 26,38 18,43 C10,38 3,28 3,18 C3,9 9,3 18,3Z" fill="url(#dgx)"/></svg> أخذ:',
@@ -810,7 +798,7 @@ function setLang(l){
   u('s-ttl','sTtl');ui('l-p1','lP1');ui('l-p2','lP2');u('l-ai','lAI');
   u('l-who','lWho');u('l-time','lTime');u('l-sof','lSof');
   ui('o-p1','oP1');ui('o-p2','oP2');u('o-rnd','oRnd');u('o-t0','oT0');
-  u('b-back','bk');u('b-start','st');u('b-menu','mn');u('b-undo','ud');
+  u('b-back','bk');u('b-start','st');u('l-color','lColor');u('o-c1','oC1');u('o-c2','oC2');u('b-menu','mn');u('b-undo','ud');
   u('sec-cap','sCap');u('sec-hist','sHist');ui('cap1l','c1');ui('cap2l','c2');
   u('r-tit','rTit');u('b-rb','bk');u('b-rm','mn');
   u('p1turn','pt');u('p2turn','pt');
@@ -1982,6 +1970,16 @@ function debugStats(){
 }
 // Exposer globalement
 window.debugStats = debugStats;
+
+function onP1ColChange(){
+  const val=document.getElementById('p1col').value;
+  updateP2Label(val);
+}
+function updateP2Label(p1Color){
+  const p2color=p1Color==='red'?'green':'red';
+  const lp2=document.getElementById('l-p2');
+  if(lp2) lp2.textContent=p2color==='red'?(L==='ar'?'اللاعب الثاني — عصي':'Joueur 2 — Bâtons'):(L==='ar'?'اللاعب الثاني — براز':'Joueur 2 — Crottes');
+}
 
 function endGame(w,byTime=false,byBlock=false){
   if(G.over) return; // Éviter double appel
