@@ -301,16 +301,6 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
 .sttl2,.mhist,.ibox{display:none}.rp{display:none}
 }
 
-.cs-wrap{position:relative;z-index:10}
-.cs-btn{width:100%;padding:10px 13px;background:rgba(255,255,255,.13);border:1.5px solid rgba(201,147,58,.48);border-radius:8px;color:#FFF;font-family:inherit;font-size:.88rem;cursor:pointer;display:flex;align-items:center;gap:6px;justify-content:space-between;text-align:left}
-.cs-btn::after{content:‘▼’;color:var(–gold);font-size:.7rem;margin-left:auto;flex-shrink:0}
-.cs-list{position:absolute;top:calc(100% + 3px);left:0;right:0;background:#221508;border:1.5px solid rgba(201,147,58,.6);border-radius:8px;display:none;z-index:100;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.8)}
-.cs-list.open{display:block}
-.cs-opt{padding:11px 13px;cursor:pointer;color:#FFF;font-size:.88rem;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(201,147,58,.15);background:#221508;transition:background .15s}
-.cs-opt:hover{background:rgba(201,147,58,.25)}
-.cs-opt.sel{background:rgba(201,147,58,.2);color:var(–gold-l)}
-.cs-opt:last-child{border-bottom:none}
-
 .dbg-panel{position:fixed;top:5px;left:5px;background:rgba(0,0,0,.92);color:#0F0;padding:8px 12px;border:1px solid #0F0;border-radius:6px;font-family:monospace;font-size:.7rem;z-index:9999;max-width:280px;max-height:90vh;overflow-y:auto;white-space:pre-wrap}
 .dbg-panel button{background:#0F0;color:#000;border:none;padding:3px 8px;border-radius:4px;font-size:.7rem;cursor:pointer;margin-top:6px}
 
@@ -370,30 +360,18 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
       </div>
       <div class="fg" id="colorg">
         <label class="fl" id="l-color">Couleur du Joueur 1</label>
-        <div class="cs-wrap">
-          <input type="hidden" id="p1col" value="red">
-          <div class="cs-btn" id="p1col-btn" onclick="toggleP1Col()">
-            <span id="p1col-display"></span>
-          </div>
-          <div class="cs-list" id="p1col-list">
-            <div class="cs-opt sel" onclick="selectP1Col('red')" id="o-c1"></div>
-            <div class="cs-opt" onclick="selectP1Col('green')" id="o-c2"></div>
-          </div>
-        </div>
+        <select class="fs" id="p1col" onchange="onP1ColChange()">
+          <option value="red" id="o-c1">🪄 Bâtons dorés (bas)</option>
+          <option value="green" id="o-c2">🫘 Crottes noires (haut)</option>
+        </select>
       </div>
       <div class="fg">
         <label class="fl" id="l-who">Qui fait la Werde (premier coup) ?</label>
-        <div class="cs-wrap">
-          <input type="hidden" id="whos" value="red">
-          <div class="cs-btn" id="whos-btn" onclick="toggleCustomSelect()">
-            <span id="whos-display"><svg viewBox="0 0 36 80" style="width:14px;height:26px;display:inline-block;vertical-align:middle"><defs><linearGradient id="wgs" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8C060"/><stop offset="45%" stop-color="#C08820"/><stop offset="100%" stop-color="#7A5010"/></linearGradient><linearGradient id="wss" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#9A6818"/><stop offset="50%" stop-color="#C89228"/><stop offset="100%" stop-color="#8A5810"/></linearGradient></defs><rect x="15" y="32" width="6" height="42" rx="3" fill="url(#wss)"/><ellipse cx="18" cy="20" rx="14" ry="17" fill="url(#wgs)"/></svg> Joueur 1 — Bâtons (bas)</span>
-          </div>
-          <div class="cs-list" id="whos-list">
-            <div class="cs-opt sel" onclick="selectWho('red','<svg viewBox="0 0 36 80" style="width:14px;height:26px;display:inline-block;vertical-align:middle"><defs><linearGradient id="wgs" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8C060"/><stop offset="45%" stop-color="#C08820"/><stop offset="100%" stop-color="#7A5010"/></linearGradient><linearGradient id="wss" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#9A6818"/><stop offset="50%" stop-color="#C89228"/><stop offset="100%" stop-color="#8A5810"/></linearGradient></defs><rect x="15" y="32" width="6" height="42" rx="3" fill="url(#wss)"/><ellipse cx="18" cy="20" rx="14" ry="17" fill="url(#wgs)"/></svg> Joueur 1 — Bâtons (bas)')" id="o-p1"><svg viewBox="0 0 36 80" style="width:14px;height:26px;display:inline-block;vertical-align:middle"><defs><linearGradient id="wgs" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8C060"/><stop offset="45%" stop-color="#C08820"/><stop offset="100%" stop-color="#7A5010"/></linearGradient><linearGradient id="wss" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#9A6818"/><stop offset="50%" stop-color="#C89228"/><stop offset="100%" stop-color="#8A5810"/></linearGradient></defs><rect x="15" y="32" width="6" height="42" rx="3" fill="url(#wss)"/><ellipse cx="18" cy="20" rx="14" ry="17" fill="url(#wgs)"/></svg> <span>Joueur 1 — Bâtons (bas)</span></div>
-            <div class="cs-opt" onclick="selectWho('green','<svg viewBox="0 0 36 46" style="width:16px;height:22px;display:inline-block;vertical-align:middle"><defs><radialGradient id="dgs" cx="36%" cy="30%" r="65%"><stop offset="0%" stop-color="#6B3E1E"/><stop offset="55%" stop-color="#2E1508"/><stop offset="100%" stop-color="#150903"/></radialGradient></defs><path d="M18,3 C27,3 33,9 33,18 C33,28 26,38 18,43 C10,38 3,28 3,18 C3,9 9,3 18,3Z" fill="url(#dgs)"/></svg> Joueur 2 — Crottes (haut)')" id="o-p2"><svg viewBox="0 0 36 46" style="width:16px;height:22px;display:inline-block;vertical-align:middle"><defs><radialGradient id="dgs" cx="36%" cy="30%" r="65%"><stop offset="0%" stop-color="#6B3E1E"/><stop offset="55%" stop-color="#2E1508"/><stop offset="100%" stop-color="#150903"/></radialGradient></defs><path d="M18,3 C27,3 33,9 33,18 C33,28 26,38 18,43 C10,38 3,28 3,18 C3,9 9,3 18,3Z" fill="url(#dgs)"/></svg> <span>Joueur 2 — Crottes (haut)</span></div>
-            <div class="cs-opt" onclick="selectWho('random','🎲 Aléatoire')" id="o-rnd">🎲 <span>Aléatoire</span></div>
-          </div>
-        </div>
+        <select class="fs" id="whos">
+          <option value="red" id="o-p1">🪄 Joueur 1 — Bâtons (bas)</option>
+          <option value="green" id="o-p2">🫘 Joueur 2 — Crottes (haut)</option>
+          <option value="random" id="o-rnd">🎲 Aléatoire</option>
+        </select>
       </div>
       <div class="fg">
         <label class="fl" id="l-time">Temps par joueur</label>
@@ -3308,30 +3286,6 @@ document.addEventListener('keydown',e=>{
 
 
 // Custom select couleur Joueur 1
-function toggleP1Col(){
-  document.getElementById('p1col-list').classList.toggle('open');
-}
-function selectP1Col(val){
-  const el=document.getElementById('p1col');
-  if(el) el.value=val;
-}
-function updateP1ColDisplay(){
-  const val=document.getElementById('p1col').value;
-  const SVG_BC='<svg viewBox="0 0 36 80" style="width:14px;height:26px;display:inline-block;vertical-align:middle;margin-right:5px"><defs><linearGradient id="wgc" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8C060"/><stop offset="45%" stop-color="#C08820"/><stop offset="100%" stop-color="#7A5010"/></linearGradient><linearGradient id="wsc" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#9A6818"/><stop offset="50%" stop-color="#C89228"/><stop offset="100%" stop-color="#8A5810"/></linearGradient></defs><rect x="15" y="32" width="6" height="42" rx="3" fill="url(#wsc)"/><ellipse cx="18" cy="20" rx="14" ry="17" fill="url(#wgc)"/></svg>';
-  const SVG_DC='<svg viewBox="0 0 36 46" style="width:16px;height:22px;display:inline-block;vertical-align:middle;margin-right:5px"><defs><radialGradient id="dgc" cx="36%" cy="30%" r="65%"><stop offset="0%" stop-color="#6B3E1E"/><stop offset="55%" stop-color="#2E1508"/><stop offset="100%" stop-color="#150903"/></radialGradient></defs><path d="M18,3 C27,3 33,9 33,18 C33,28 26,38 18,43 C10,38 3,28 3,18 C3,9 9,3 18,3Z" fill="url(#dgc)"/></svg>';
-  const tBat=L==='ar'?'العصي الذهبية':'Bâtons dorés';
-  const tDun=L==='ar'?'البراز الأسود':'Crottes noires';
-  const o1=document.getElementById('o-c1');
-  const o2=document.getElementById('o-c2');
-  if(o1) o1.innerHTML=SVG_BC+'<span>'+tBat+'</span>';
-  if(o2) o2.innerHTML=SVG_DC+'<span>'+tDun+'</span>';
-  const disp=document.getElementById('p1col-display');
-  if(disp) disp.innerHTML=val==='red'?(SVG_BC+tBat):(SVG_DC+tDun);
-  // Marquer l'option active
-  document.querySelectorAll('#p1col-list .cs-opt').forEach(o=>o.classList.remove('sel'));
-  const sel=val==='red'?o1:o2;
-  if(sel) sel.classList.add('sel');
-}
 document.addEventListener('click',function(e){
   const btn=document.getElementById('p1col-btn');
   const list=document.getElementById('p1col-list');
@@ -3341,23 +3295,8 @@ document.addEventListener('click',function(e){
 });
 
 // Custom select Werde
-function toggleCustomSelect(){
-  document.getElementById('whos-list').classList.toggle('open');
-}
-function selectWho(val, displayHTML){
-  document.getElementById('whos').value=val;
-  document.getElementById('whos-display').innerHTML=displayHTML;
-  document.getElementById('whos-list').classList.remove('open');
-  document.querySelectorAll('#whos-list .cs-opt').forEach(o=>o.classList.remove('sel'));
-}
 // Fermer si clic ailleurs
-document.addEventListener('click', function(e){
-  const btn=document.getElementById('whos-btn');
-  const list=document.getElementById('whos-list');
-  if(btn&&list&&!btn.contains(e.target)&&!list.contains(e.target)){
-    list.classList.remove('open');
-  }
-});
+
 
 // ============================================================
 // SERVICE WORKER — fonctionne hors-ligne
