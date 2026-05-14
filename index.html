@@ -41,7 +41,7 @@ color:var(–deep);box-shadow:0 4px 16px rgba(201,147,58,.35);padding:14px 22px}
 .btn-s{background:rgba(201,147,58,.12);color:var(–gold-l);border:1px solid rgba(201,147,58,.4)}
 .btn-g{background:transparent;color:var(–sand);border:1px solid rgba(255,255,255,.2);font-size:.83rem}
 .btn-d{background:rgba(180,40,40,.3);color:#FF9090;border:1px solid rgba(180,40,40,.5)}
-.btn-sm{padding:5px 10px;font-size:.73rem;border-radius:6px}
+.btn-sm{padding:7px 11px;font-size:.73rem;border-radius:6px;min-height:34px;min-width:34px}
 
 /* –– MENU –– */
 #menu-screen{align-items:center;justify-content:center;padding:20px}
@@ -300,16 +300,20 @@ z-index:200;pointer-events:none;text-align:center;max-width:88vw}
 #bsvg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 #igrid{position:absolute;inset:0;
 display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr)}
-@media(max-width:600px){
+@media(max-width:600px) and (orientation:portrait){
 .glayout{flex-direction:column}
 .sp{width:100%;flex-direction:row;flex-wrap:wrap;max-height:88px;overflow:hidden}
+.sttl2,.mhist,.ibox{display:none}.rp{display:none}
+}
+@media(max-width:900px) and (orientation:landscape){
+.sp{width:130px}
 .sttl2,.mhist,.ibox{display:none}.rp{display:none}
 }
 
 .hmenu-wrap{position:relative}
 .hmenu-btn{background:rgba(201,147,58,.15);border:1px solid rgba(201,147,58,.4);
-color:var(–gold);padding:5px 10px;border-radius:6px;cursor:pointer;
-font-size:1.1rem;font-weight:700;line-height:1}
+color:var(–gold);padding:7px 12px;border-radius:6px;cursor:pointer;
+font-size:1.1rem;font-weight:700;line-height:1;min-height:34px;min-width:40px}
 .hmenu-list{position:absolute;top:calc(100% + 6px);right:0;
 background:#221508;border:1.5px solid rgba(201,147,58,.5);
 border-radius:10px;display:none;z-index:200;
@@ -356,7 +360,7 @@ width:100%;text-align:left;font-family:inherit;transition:background .15s}
       </div>
     </div>
           <button class="mbtn mbtn-dark" onclick="installPWA()" id="btn-pwa" style="display:none"><span>📲 Installer l'application</span></button>
-    <div class="ver">DHAMIÉ v8.6 • Sidimaz</div>
+    <div class="ver">DHAMIÉ v8.7 • Sidimaz</div>
   </div>
 </div>
 
@@ -907,13 +911,10 @@ function checkManualSouflaCorner(c,r){
 }
 
 function sizeBoard(){
-  const area=document.getElementById('board-area');
   const frame=document.getElementById('bframe');
   const wrap=document.getElementById('bgwrap');
-  if(!area||!frame||!wrap) return;
+  if(!frame||!wrap) return;
 
-  // Utiliser window dimensions pour tenir compte des panels cachés
-  const gameScreen=document.getElementById('game-screen');
   const ghdr=document.querySelector('.ghdr');
   const sbar=document.querySelector('.sbar');
   const hdrH=ghdr?ghdr.offsetHeight:44;
@@ -924,21 +925,25 @@ function sizeBoard(){
   document.querySelectorAll('.sp').forEach(p=>{
     if(!p.classList.contains('collapsed')) panelW+=p.offsetWidth;
   });
-  const availW=window.innerWidth-panelW-16;
-  const availH=window.innerHeight-hdrH-sbarH-16;
 
-  const overhead=80;
+  // Padding global minimal
+  const pad=8;
+  const availW=window.innerWidth-panelW-(pad*2);
+  const availH=window.innerHeight-hdrH-sbarH-(pad*2);
+
+  // Overhead interne du plateau (frame + inner + labels)
+  const overhead=76;
   const maxSize=Math.min(availW,availH)-overhead;
   const size=Math.max(maxSize,200);
 
   frame.style.width=size+'px';
-  const gridSize=size-overhead+20;
+  const gridSize=Math.max(size-overhead+20, 150);
   wrap.style.width=gridSize+'px';
   wrap.style.height=gridSize+'px';
 }
 
-window.addEventListener('resize',sizeBoard);
-window.addEventListener('orientationchange',()=>setTimeout(sizeBoard,200));
+window.addEventListener('resize',function(){ sizeBoard(); handleOrientation && handleOrientation(); });
+window.addEventListener('orientationchange',function(){ setTimeout(function(){ handleOrientation && handleOrientation(); sizeBoard(); },300); });
 
 
 function drawLines(){
@@ -3381,9 +3386,19 @@ function togglePanels(){
 
 // Sur mobile: cacher les panels par défaut pour agrandir le plateau
 function initPanelsMobile(){
-  const isMobile = window.innerWidth < 500;
-  if(isMobile && _panelsVisible){
-    togglePanels();
+  handleOrientation();
+}
+
+function handleOrientation(){
+  const isPhone = Math.min(window.innerWidth, window.innerHeight) < 500;
+  if(!isPhone) return; // Tablette: ne rien changer
+  const isLandscape = window.innerWidth > window.innerHeight;
+  if(isLandscape){
+    // Paysage: montrer les panels (assez d'espace)
+    if(!_panelsVisible) togglePanels();
+  } else {
+    // Portrait: cacher les panels pour agrandir le plateau
+    if(_panelsVisible) togglePanels();
   }
 }
 
@@ -3394,7 +3409,7 @@ if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
     // Service worker inline via blob
     const swCode = `
-      const CACHE = 'dhamiet-v8.6';
+      const CACHE = 'dhamiet-v8.7';
       self.addEventListener('install', e => {
         e.waitUntil(caches.open(CACHE).then(cache => cache.addAll([location.href])));
         self.skipWaiting();
