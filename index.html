@@ -118,8 +118,13 @@ border-radius:5px;padding:3px 8px;font-size:.74rem;color:var(–gold-l);min-widt
 /* –– PANELS –– */
 .sp{width:165px;flex-shrink:0;display:flex;flex-direction:column;gap:8px;
 padding:10px 7px;background:rgba(0,0,0,.42);
-border-inline-end:1px solid rgba(201,147,58,.18);overflow-y:auto}
+border-inline-end:1px solid rgba(201,147,58,.18);overflow-y:auto;
+transition:width .25s,padding .25s,opacity .25s}
 .sp.rp{border-inline-end:none;border-inline-start:1px solid rgba(201,147,58,.18)}
+.sp.collapsed{width:0;padding:0;opacity:0;overflow:hidden;border:none}
+.panel-toggle{background:rgba(201,147,58,.15);border:1px solid rgba(201,147,58,.3);
+color:var(–gold);padding:4px 7px;border-radius:5px;cursor:pointer;font-size:.75rem;
+flex-shrink:0;align-self:center}
 .pcard{background:rgba(15,8,2,.82);border:1.5px solid rgba(201,147,58,.22);
 border-radius:10px;padding:10px;transition:all .28s}
 .pcard.on{border-color:var(–gold);background:rgba(40,22,5,.92);
@@ -333,7 +338,7 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
       </div>
     </div>
           <button class="mbtn mbtn-dark" onclick="installPWA()" id="btn-pwa" style="display:none"><span>📲 Installer l'application</span></button>
-    <div class="ver">DHAMIÉ v8.4 • Sidimaz</div>
+    <div class="ver">DHAMIÉ v8.5 • Sidimaz</div>
   </div>
 </div>
 
@@ -398,10 +403,11 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
     <button class="btn btn-g btn-sm" onclick="confirmQuit()" id="b-menu">← Menu</button>
     <div class="hlogo">ظامِتْ</div>
     <div class="hbtns">
+      <button class="panel-toggle" onclick="togglePanels()" id="btn-panels" title="Afficher/Cacher panels">◀▶</button>
       <div id="t1" class="tdisp">—</div>
       <div id="t2" class="tdisp">—</div>
-      <button class="btn btn-s btn-sm" onclick="toggleSoufla()" id="btn-soufla-game" title="Soufla ON/OFF">⚡</button>
-      <button class="btn btn-s btn-sm" onclick="reclamerSoufla()" id="btn-reclamer" title="Réclamer Soufla" style="display:none;background:rgba(255,100,0,.25);border-color:rgba(255,100,0,.6);color:#FF8040">🚨</button>
+      <button class="btn btn-s btn-sm" onclick="toggleSoufla()" id="btn-soufla-game" title="Soufla ON/OFF">⚡ Soufla</button>
+      <button class="btn btn-s btn-sm" onclick="reclamerSoufla()" id="btn-reclamer" title="Réclamer Soufla" style="display:none;background:rgba(255,100,0,.25);border-color:rgba(255,100,0,.6);color:#FF8040">🚨 Soufla</button>
       <button class="btn btn-s btn-sm" onclick="confirmerSoufla()" id="btn-confirmer" title="Confirmer" style="display:none;background:rgba(0,200,80,.2);border-color:rgba(0,200,80,.5);color:#40FF80">✅</button>
       <button class="btn btn-s btn-sm" onclick="toggleSounds()" id="sound-btn">🔊</button>
       <button class="btn btn-s btn-sm" onclick="requestUndo()" id="b-undo">↩</button>
@@ -989,6 +995,7 @@ function startGame(){
   buildGrid(); drawLines(); renderBoard(); updateUI();
   showScreen('game-screen');
   setTimeout(sizeBoard,60);
+  setTimeout(initPanelsMobile, 100);
   // Retourner le plateau si Joueur 1 choisit les crottes
   setGuestLabels(p1Color==='green');
     toast(t('wel'));
@@ -1478,18 +1485,16 @@ function checkSoufla(from, to, cap, killMap){
   // Règle du nombre égal: si movingMax >= globalMax → libre choix → pas de soufla
   if(movingMax >= globalMax) return null;
   // Soufla sur les pièces qui avaient STRICTEMENT plus que la pièce jouée
-  // ET qui peuvent ENCORE capturer sur le plateau actuel (après le coup)
+  // RÈGLE: utiliser SEULEMENT le killMap original (avant le coup)
+  // Une pièce qui acquiert des captures APRÈS le coup → pas de soufla maintenant
+  // Ce sera soufla au prochain tour si elle ne capture pas
   for(const [key,val] of Object.entries(killMap)){
     const [kc,kr] = key.split(',').map(Number);
     if(kc===from.c&&kr===from.r) continue;
     if(val > movingMax){
-      const p=G.board[kr]&&G.board[kr][kc];
-      if(p){
-        // Vérifier que cette pièce peut ENCORE capturer maintenant
-        const stillCanKill=pieceKills(kc,kr,p).length>0;
-        if(stillCanKill&&!faulty.some(x=>x.c===kc&&x.r===kr))
-          faulty.push({c:kc,r:kr});
-      }
+      // La pièce était dans killMap AVANT le coup → soufla légitime
+      if(G.board[kr]&&G.board[kr][kc]&&!faulty.some(x=>x.c===kc&&x.r===kr))
+        faulty.push({c:kc,r:kr});
     }
   }
   return faulty.length?faulty:null;
@@ -2350,10 +2355,10 @@ function moveOrder(board,mv,col){
   // 3. SÉCURITÉ
   const afterBoard=cloneB(board); applyB(afterBoard,mv.from,mv.to);
   const threats=countThreatScore(afterBoard,mv.to.c,mv.to.r,col);
-  if(threats>0) s-=800*threats;
+  if(threats>0) s-=1200*threats; // Très forte pénalité pour coups dangereux
   // 4. FUIR si pièce menacée
   const currentThreat=countThreatScore(board,mv.from.c,mv.from.r,col);
-  if(currentThreat>0) s+=400;
+  if(currentThreat>0) s+=600; // Fuir une menace = priorité haute
   // 5. MENACER après le coup
   const pp2=afterBoard[mv.to.r][mv.to.c];
   if(pp2) s+=getKillsB(afterBoard,mv.to.c,mv.to.r,pp2).length*100;
@@ -2396,7 +2401,7 @@ function evalBoard(board,myCol){
       v+=getMovesB(board,c,r,p).length*15;
       v+=(4-Math.max(Math.abs(c-4),Math.abs(r-4)))*25;
       // Sultan menacé: grosse pénalité
-      if(threatened) v-=350;
+      if(threatened) v-=550; // Sultan menacé = catastrophique
     } else {
       v=130;
       const adv=p.t==='green'?r:(BS-1-r);
@@ -2438,7 +2443,7 @@ function evalBoard(board,myCol){
           if(ep&&ep.t!==p.t&&getKillsB(board,cc,rr,ep).some(k=>k.cap&&k.cap.c===c&&k.cap.r===r))
             threatCount++;
         }
-        v-=180*threatCount; // Pénalité forte par menace
+        v-=280*threatCount; // Pénalité très forte par menace
       }
 
       // Bonus si la pièce peut sécuriser en avançant
@@ -3312,13 +3317,39 @@ document.addEventListener('click',function(e){
 
 
 // ============================================================
+// PANELS REPLIABLES — plateau agrandi sur mobile
+// ============================================================
+let _panelsVisible = true;
+
+function togglePanels(){
+  _panelsVisible = !_panelsVisible;
+  const panels = document.querySelectorAll('.sp');
+  const btn = document.getElementById('btn-panels');
+  panels.forEach(p => {
+    if(_panelsVisible) p.classList.remove('collapsed');
+    else p.classList.add('collapsed');
+  });
+  if(btn) btn.textContent = _panelsVisible ? '◀▶' : '▶◀';
+  // Recalculer la taille du plateau
+  setTimeout(sizeBoard, 280);
+}
+
+// Sur mobile: cacher les panels par défaut pour agrandir le plateau
+function initPanelsMobile(){
+  const isMobile = window.innerWidth < 500;
+  if(isMobile && _panelsVisible){
+    togglePanels();
+  }
+}
+
+// ============================================================
 // SERVICE WORKER — fonctionne hors-ligne
 // ============================================================
 if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
     // Service worker inline via blob
     const swCode = `
-      const CACHE = 'dhamiet-v8.1';
+      const CACHE = 'dhamiet-v8.5';
       self.addEventListener('install', e => {
         e.waitUntil(caches.open(CACHE).then(cache => cache.addAll([location.href])));
         self.skipWaiting();
