@@ -302,12 +302,13 @@ z-index:200;pointer-events:none;text-align:center;max-width:88vw}
 display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr)}
 @media(max-width:600px) and (orientation:portrait){
 .glayout{flex-direction:column}
-.sp{width:100%;flex-direction:row;flex-wrap:wrap;max-height:88px;overflow:hidden}
+.sp{width:100%;flex-direction:row;flex-wrap:wrap;max-height:72px;overflow:hidden;padding:4px 6px}
 .sttl2,.mhist,.ibox{display:none}.rp{display:none}
 }
 @media(max-width:900px) and (orientation:landscape){
-.sp{width:130px}
-.sttl2,.mhist,.ibox{display:none}.rp{display:none}
+.sp{width:120px;font-size:.75rem}
+.mhist{max-height:120px;font-size:.65rem}
+.ibox{display:none}.rp{display:none}
 }
 
 .hmenu-wrap{position:relative}
@@ -360,7 +361,7 @@ width:100%;text-align:left;font-family:inherit;transition:background .15s}
       </div>
     </div>
           <button class="mbtn mbtn-dark" onclick="installPWA()" id="btn-pwa" style="display:none"><span>📲 Installer l'application</span></button>
-    <div class="ver">DHAMIÉ v8.7 • Sidimaz</div>
+    <div class="ver">DHAMIÉ v8.8 • Sidimaz</div>
   </div>
 </div>
 
@@ -748,7 +749,7 @@ fr:{
   bk:'← Retour',st:'▶ Commencer',mn:'← Menu',ud:'↩',
   sCap:'Capturées',sHist:'Historique',c1:'<svg viewBox="0 0 36 80" style="width:13px;height:24px;display:inline-block;vertical-align:middle;margin-right:3px"><defs><linearGradient id="wgx" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8C060"/><stop offset="45%" stop-color="#C08820"/><stop offset="100%" stop-color="#7A5010"/></linearGradient><linearGradient id="wsx" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#9A6818"/><stop offset="50%" stop-color="#C89228"/><stop offset="100%" stop-color="#8A5810"/></linearGradient></defs><rect x="15" y="32" width="6" height="42" rx="3" fill="url(#wsx)"/><ellipse cx="18" cy="20" rx="14" ry="17" fill="url(#wgx)"/></svg> a pris :',c2:'<svg viewBox="0 0 36 46" style="width:15px;height:20px;display:inline-block;vertical-align:middle;margin-right:3px"><defs><radialGradient id="dgx" cx="36%" cy="30%" r="65%"><stop offset="0%" stop-color="#6B3E1E"/><stop offset="55%" stop-color="#2E1508"/><stop offset="100%" stop-color="#150903"/></radialGradient></defs><path d="M18,3 C27,3 33,9 33,18 C33,28 26,38 18,43 C10,38 3,28 3,18 C3,9 9,3 18,3Z" fill="url(#dgx)"/></svg> a pris :',
   rTit:'Règles du Dhamié',
-  p1d:'Joueur 1',p2d:'Joueur 2',ain:'Ordinateur',alv:'niv.',
+  p1d:'Joueur 1',p2d:'Joueur 2',ain:'Ordi.',alv:'niv.',
   wel:"Bienvenue ! Faites la Werde",
   yt:'Au tour de',
   wd:(f)=>`Jouez ${f}→E5`,we:(f)=>`Jouez la pièce ${f} pour la Werde`,
@@ -926,18 +927,16 @@ function sizeBoard(){
     if(!p.classList.contains('collapsed')) panelW+=p.offsetWidth;
   });
 
-  // Padding global minimal
-  const pad=8;
-  const availW=window.innerWidth-panelW-(pad*2);
-  const availH=window.innerHeight-hdrH-sbarH-(pad*2);
+  const availW=window.innerWidth-panelW-4;
+  const availH=window.innerHeight-hdrH-sbarH-4;
 
-  // Overhead interne du plateau (frame + inner + labels)
-  const overhead=76;
+  // Overhead interne minimal
+  const overhead=60;
   const maxSize=Math.min(availW,availH)-overhead;
   const size=Math.max(maxSize,200);
 
   frame.style.width=size+'px';
-  const gridSize=Math.max(size-overhead+20, 150);
+  const gridSize=Math.max(size-overhead+10, 150);
   wrap.style.width=gridSize+'px';
   wrap.style.height=gridSize+'px';
 }
@@ -1007,7 +1006,7 @@ function startGame(){
   const sofOn=true;
   if(starter==='random') starter=Math.random()<.5?'red':'green';
   if(timerInt) clearInterval(timerInt);
-  const p2n=gmode==='ai'?`${t('ain')} (${t('alv')}${ail})`:p2;
+  const p2n=gmode==='ai'?`${t('ain')} ${t('alv')}${ail}`:p2;
   // red=bâtons(bas), green=crottes(haut) — logique interne fixe
   // Si Joueur 1 choisit crottes: échanger les noms + retourner plateau
   const nameRed  = p1Color==='red' ? p1  : p2n;
@@ -2398,6 +2397,10 @@ function moveOrder(board,mv,col){
   // 6. AVANCEMENT
   const adv=col==='green'?mv.to.r:(BS-1-mv.to.r);
   s+=adv*5+(4-Math.abs(mv.to.c-4))*4;
+  // 8. COINS: ne pas quitter sans raison, aller vers les coins
+  const isKP=(r,c)=>(r===0||r===8)&&(c===0||c===8);
+  if(isKP(mv.from.r,mv.from.c)&&!mv.to.cap) s-=200; // Pénalité quitter coin
+  if(isKP(mv.to.r,mv.to.c)) s+=150; // Bonus aller vers coin
   return s;
 }
 
@@ -2570,24 +2573,40 @@ function updateReclamerButton(){
 
 function reclamerSoufla(){
   if(G.soufla||G.phase!=='play'||G.sfMode||MS.active) return;
-  // C'est le joueur qui vient de SUBIR un coup qui réclame
-  // donc c'est l'adversaire du joueur actuel (qui vient de jouer)
-  // G.turn = joueur qui doit jouer maintenant = celui qui réclame
-  const claimant = G.turn; // celui qui réclame = attend son tour
+  const claimantColor = G.turn;
   const claimantName = G.turn==='red'?G.p1:G.p2;
-  const faultyColor = G.turn==='red'?'green':'red'; // pièces fautives = adversaire
-  toast((L==='ar'?
-    '🚨 '+claimantName+' يطالب — انقر مرتين على قطعة '+( G.turn==='red'?G.p2:G.p1)+' الخاطئة':
-    '🚨 '+claimantName+' réclame — Double-tap sur la pièce fautive de '+(G.turn==='red'?G.p2:G.p1)),5000);
-  // Mettre en évidence les pièces adverses (fautives potentielles)
+  const faultyColor = G.turn==='red'?'green':'red';
+  toast((L==='ar'
+    ?'🚨 '+claimantName+' يطالب — انقر مرتين على القطعة الخاطئة'
+    :'🚨 '+claimantName+' réclame — Double-tap sur la pièce fautive'),5000);
   for(let r=0;r<9;r++) for(let c=0;c<9;c++){
     const p=G.board[r][c];
     if(p&&p.t===faultyColor) flashCell(c,r,'rgba(255,140,0,.4)');
+  }
+  // En mode local: bouton confirmer visible (même écran, adversaire peut confirmer)
+  if(G.mode!=='online'){
+    const cb=document.getElementById('btn-confirmer');
+    if(cb) cb.style.display='inline-block';
+  }
+  // En ligne: notifier l'adversaire qui verra le bouton ✅
+  if(G.mode==='online'&&OL.active&&OL.channel){
+    OL.channel.publish('soufla-claim',{claimant:claimantColor,by:OL.role});
   }
 }
 
 function confirmerSoufla(){
   if(!MS.active) return;
+  // En ligne: seul l'adversaire du réclamant peut confirmer
+  if(G.mode==='online'){
+    const claimantColor = MS.claimant;
+    const myColor = OL.myColor;
+    if(myColor===claimantColor){
+      toast(L==='ar'?'فقط الخصم يمكنه التأكيد':'Seul votre adversaire peut confirmer',2000);
+      return;
+    }
+    // Notifier l'adversaire de la confirmation
+    if(OL.channel) OL.channel.publish('soufla-confirm',{c:MS.pos.c,r:MS.pos.r,by:OL.role});
+  }
   confirmManualSoufla();
 }
 
@@ -3154,7 +3173,14 @@ function onlineCreate(){
           OL.receiving=false;
         }
       });
-      ch.subscribe('sync',(msg)=>{
+      ch.subscribe('soufla-confirm',(msg)=>{
+        if(msg.data.by!==OL.role){
+          OL.receiving=true;
+          applySouflaClick(msg.data.c,msg.data.r);
+          OL.receiving=false;
+        }
+      });
+            ch.subscribe('sync',(msg)=>{
         if(msg.data.by!==OL.role&&OL.active&&G.turn!==msg.data.turn){
           G.turn=msg.data.turn; renderBoard();updateUI();
         }
@@ -3217,6 +3243,37 @@ function onlineJoin(){
         }
       });
       ch.subscribe('soufla-pick',(msg)=>{
+        if(msg.data.by!==OL.role){
+          OL.receiving=true;
+          applySouflaClick(msg.data.c,msg.data.r);
+          OL.receiving=false;
+        }
+      });
+      ch.subscribe('soufla-toggle',(msg)=>{
+        if(msg.data.by!==OL.role){
+          G.soufla=msg.data.soufla;
+          updateSouflaBtn();
+          updateReclamerButton();
+          toast((G.soufla?(L==='ar'?'السوفلة مفعّلة':'Soufla activée'):(L==='ar'?'السوفلة معطّلة':'Soufla désactivée')),1500);
+        }
+      });
+      ch.subscribe('soufla-claim',(msg)=>{
+        if(msg.data.by!==OL.role){
+          const claimantName=msg.data.claimant==='red'?G.p1:G.p2;
+          toast((L==='ar'
+            ?'🚨 '+claimantName+' يطالب بسوفلة — انقر مرتين على القطعة الخاطئة'
+            :'🚨 '+claimantName+' réclame Soufla — Double-tap sur la pièce fautive'),5000);
+          const oppColor=msg.data.claimant==='red'?'green':'red';
+          for(let r=0;r<9;r++) for(let c=0;c<9;c++){
+            const p=G.board[r][c];
+            if(p&&p.t===oppColor) flashCell(c,r,'rgba(255,140,0,.4)');
+          }
+          // Montrer le bouton confirmer chez l'adversaire du réclamant
+          const cb=document.getElementById('btn-confirmer');
+          if(cb) cb.style.display='inline-block';
+        }
+      });
+      ch.subscribe('soufla-confirm',(msg)=>{
         if(msg.data.by!==OL.role){
           OL.receiving=true;
           applySouflaClick(msg.data.c,msg.data.r);
@@ -3409,7 +3466,7 @@ if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
     // Service worker inline via blob
     const swCode = `
-      const CACHE = 'dhamiet-v8.7';
+      const CACHE = 'dhamiet-v8.8';
       self.addEventListener('install', e => {
         e.waitUntil(caches.open(CACHE).then(cache => cache.addAll([location.href])));
         self.skipWaiting();
