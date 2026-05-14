@@ -333,7 +333,7 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
       </div>
     </div>
           <button class="mbtn mbtn-dark" onclick="installPWA()" id="btn-pwa" style="display:none"><span>📲 Installer l'application</span></button>
-    <div class="ver">DHAMIÉ v8.3 • Sidimaz</div>
+    <div class="ver">DHAMIÉ v8.4 • Sidimaz</div>
   </div>
 </div>
 
@@ -1338,6 +1338,9 @@ function doMove(from, to){
   G.lastMove={fc:from.c, fr:from.r, tc:to.c, tr:to.r};
   G.log.push(cn(from)+'→'+cn(to)+(cap?'×'+cn(cap):''));
   G.mc++;
+  // Enregistrer coup pour mémoire IA (tous modes)
+  if(G.mode!=='ai'||G.turn!=='green')
+    aiMoveHistory.push({board:cloneB(G.board),turn:G.turn,from:from.c+','+from.r,to:to.c+','+to.r});
   if(G.phase==='atk'){G.phase='play'; G.atkDone=true; toast(t('ae'),1700);}
   G.sel=null; G.valid=[];
 
@@ -1368,11 +1371,19 @@ function doMove(from, to){
 
   // ---- SOUFLA CHECK (skip when receiving opponent move online) ----
   if(G.soufla&&G.phase==='play'&&!(G.mode==='online'&&OL.receiving)){
-    const faultyPos = checkSoufla(from, to, cap, killMap);
-    if(faultyPos){
-      G.chainPiece=null;
-      triggerSoufla(G.turn, faultyPos);
-      return;
+    // Ne vérifier soufla que si ce coup n'était PAS une chaîne en cours
+    // (une chaîne = une pièce qui continuait à capturer)
+    // Si la pièce qui vient de jouer était déjà en chaîne, pas de soufla
+    // car le killMap a été calculé avant le PREMIER coup de la chaîne
+    const wasChaining = G._wasChaining || false;
+    G._wasChaining = false;
+    if(!wasChaining){
+      const faultyPos = checkSoufla(from, to, cap, killMap);
+      if(faultyPos){
+        G.chainPiece=null;
+        triggerSoufla(G.turn, faultyPos);
+        return;
+      }
     }
   }
 
@@ -1569,6 +1580,8 @@ function handleSouflaClick(c,r){
   if(G.mode==='online'&&OL.active&&!OL.receiving){
     OL.channel.publish('soufla-pick',{c,r,by:OL.role});
   }
+  // Une seule pièce par procédure
+  G.sfTgt = [{c,r}];
   applySouflaClick(c,r);
 }
 
@@ -1580,6 +1593,9 @@ function applySouflaClick(c,r){
       G.board[r][c]=null;
       if(G.sfOff==='red') G.capG++;
       else G.capR++;
+      // Ajouter au journal
+      G.log.push('⚡ Soufla: '+cn({c,r})+' retirée');
+      G.mc++;
     }
     G.sfMode=false; G.sfOff=null; G.sfTgt=[];
     document.getElementById('sfb').style.display='none';
@@ -1973,12 +1989,21 @@ function endGame(w,byTime=false,byBlock=false){
   const wn=w==='red'?G.p1:G.p2;
   try{ sendGameStats(wn, byTime); }catch(e){}
   playSound('victory');
-  if(G.mode==='ai' && aiMoveHistory.length>0){
-    if(w==='green') rememberWin(aiMoveHistory);
-    else rememberLoss(aiMoveHistory);
+  // Mémoire IA: enregistrer pour tous les modes
+  if(aiMoveHistory.length>0){
+    if(G.mode==='ai'){
+      if(w==='green') rememberWin(aiMoveHistory);
+      else rememberLoss(aiMoveHistory);
+      setTimeout(saveSharedBrain, 1000);
+    } else if(G.mode==='local'||G.mode==='online'){
+      // Pour local/online: enregistrer les coups du gagnant
+      // comme référence de bonne stratégie pour l'IA
+      const winColor = w==='red'?'red':'green';
+      const winHistory = aiMoveHistory.filter(m=>m.turn===winColor);
+      if(winHistory.length>0) rememberWin(winHistory);
+      setTimeout(saveSharedBrain, 2000);
+    }
     aiMoveHistory=[];
-    // Synchroniser avec le cerveau partagé
-    setTimeout(saveSharedBrain, 1000);
   }
   showModal(byTime?'⏰':'🏆',
     byTime?t('to'):t('wi'),
@@ -2879,24 +2904,12 @@ function startChainTimer15(piecePos, possibleKills){
       G.sel=null; G.valid=[]; G.chainPiece=null;
       triggerSoufla(p.t, [piecePos]);
     } else {
-      // Mode MANUEL: alerter l'adversaire, il peut réclamer
-      const oppName = p.t==='red' ? G.p2 : G.p1;
-      const sfb = document.getElementById('sfb');
-      sfb.textContent = L==='ar'
-        ? '⏱ 15ث — ' + oppName + ' يمكنه المطالبة! اضغط 🚨'
-        : '⏱ 15s — ' + oppName + ' peut réclamer Soufla ! Appuyez 🚨';
-      sfb.style.display = 'block';
-      flashCell(piecePos.c, piecePos.r, 'rgba(255,165,0,.6)');
-      G._canClaim15 = piecePos;
-      // Passer le tour après 15s supplémentaires si pas de réclamation
-      G._chain15pass = setTimeout(function(){
-        G._canClaim15 = null;
-        sfb.style.display = 'none';
-        G.sel=null; G.valid=[]; G.chainPiece=null;
-        switchTurn();
-      }, 15000);
+      // Mode MANUEL: passer le tour silencieusement
+      // Pas de message ni clignotement — les joueurs observent eux-mêmes
+      G.sel=null; G.valid=[]; G.chainPiece=null;
+      switchTurn();
     }
-  }, 15000);
+  }, 20000);
 }
 
 function resetChainTimer15(piecePos, possibleKills){
