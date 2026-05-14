@@ -306,6 +306,24 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
 .sttl2,.mhist,.ibox{display:none}.rp{display:none}
 }
 
+.hmenu-wrap{position:relative}
+.hmenu-btn{background:rgba(201,147,58,.15);border:1px solid rgba(201,147,58,.4);
+color:var(–gold);padding:5px 10px;border-radius:6px;cursor:pointer;
+font-size:1.1rem;font-weight:700;line-height:1}
+.hmenu-list{position:absolute;top:calc(100% + 6px);right:0;
+background:#221508;border:1.5px solid rgba(201,147,58,.5);
+border-radius:10px;display:none;z-index:200;
+box-shadow:0 8px 30px rgba(0,0,0,.8);min-width:170px;overflow:hidden}
+.hmenu-list.open{display:block}
+.hmenu-item{padding:11px 15px;cursor:pointer;color:#FFF;font-size:.85rem;
+display:flex;align-items:center;gap:9px;border-bottom:1px solid rgba(255,255,255,.06);
+background:transparent;border-left:none;border-right:none;border-top:none;
+width:100%;text-align:left;font-family:inherit;transition:background .15s}
+.hmenu-item:hover{background:rgba(201,147,58,.2)}
+.hmenu-item:last-child{border-bottom:none}
+.hmenu-item.danger{color:#FF8080}
+.hmenu-item.active{color:#FFB040}
+
 .dbg-panel{position:fixed;top:5px;left:5px;background:rgba(0,0,0,.92);color:#0F0;padding:8px 12px;border:1px solid #0F0;border-radius:6px;font-family:monospace;font-size:.7rem;z-index:9999;max-width:280px;max-height:90vh;overflow-y:auto;white-space:pre-wrap}
 .dbg-panel button{background:#0F0;color:#000;border:none;padding:3px 8px;border-radius:4px;font-size:.7rem;cursor:pointer;margin-top:6px}
 
@@ -338,7 +356,7 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
       </div>
     </div>
           <button class="mbtn mbtn-dark" onclick="installPWA()" id="btn-pwa" style="display:none"><span>📲 Installer l'application</span></button>
-    <div class="ver">DHAMIÉ v8.5 • Sidimaz</div>
+    <div class="ver">DHAMIÉ v8.6 • Sidimaz</div>
   </div>
 </div>
 
@@ -403,16 +421,21 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
     <button class="btn btn-g btn-sm" onclick="confirmQuit()" id="b-menu">← Menu</button>
     <div class="hlogo">ظامِتْ</div>
     <div class="hbtns">
-      <button class="panel-toggle" onclick="togglePanels()" id="btn-panels" title="Afficher/Cacher panels">◀▶</button>
       <div id="t1" class="tdisp">—</div>
       <div id="t2" class="tdisp">—</div>
-      <button class="btn btn-s btn-sm" onclick="toggleSoufla()" id="btn-soufla-game" title="Soufla ON/OFF">⚡ Soufla</button>
-      <button class="btn btn-s btn-sm" onclick="reclamerSoufla()" id="btn-reclamer" title="Réclamer Soufla" style="display:none;background:rgba(255,100,0,.25);border-color:rgba(255,100,0,.6);color:#FF8040">🚨 Soufla</button>
-      <button class="btn btn-s btn-sm" onclick="confirmerSoufla()" id="btn-confirmer" title="Confirmer" style="display:none;background:rgba(0,200,80,.2);border-color:rgba(0,200,80,.5);color:#40FF80">✅</button>
-      <button class="btn btn-s btn-sm" onclick="toggleSounds()" id="sound-btn">🔊</button>
-      <button class="btn btn-s btn-sm" onclick="requestUndo()" id="b-undo">↩</button>
-      <button class="btn btn-s btn-sm" onclick="showShareModal()">🔗</button>
-      <button class="btn btn-d btn-sm" onclick="confirmRestart()">↺</button>
+      <button class="btn btn-s btn-sm" onclick="toggleSoufla()" id="btn-soufla-game">⚡ Soufla</button>
+      <button class="btn btn-s btn-sm" onclick="reclamerSoufla()" id="btn-reclamer" style="display:none;background:rgba(255,100,0,.25);border-color:rgba(255,100,0,.6);color:#FF8040">🚨</button>
+      <button class="btn btn-s btn-sm" onclick="confirmerSoufla()" id="btn-confirmer" style="display:none;background:rgba(0,200,80,.2);border-color:rgba(0,200,80,.5);color:#40FF80">✅</button>
+      <div class="hmenu-wrap">
+        <button class="hmenu-btn" onclick="toggleHMenu()" id="btn-hmenu">⋯</button>
+        <div class="hmenu-list" id="hmenu-list">
+          <button class="hmenu-item" onclick="requestUndo();closeHMenu()">↩ Annuler le coup</button>
+          <button class="hmenu-item" onclick="toggleSounds();closeHMenu()" id="hmenu-sound">🔊 Son</button>
+          <button class="hmenu-item" onclick="togglePanels();closeHMenu()" id="hmenu-panels">◀▶ Panels</button>
+          <button class="hmenu-item" onclick="showShareModal();closeHMenu()">🔗 Partager</button>
+          <button class="hmenu-item danger" onclick="confirmRestart();closeHMenu()">↺ Réinitialiser</button>
+        </div>
+      </div>
     </div>
   </div>
   <div class="glayout">
@@ -889,22 +912,27 @@ function sizeBoard(){
   const wrap=document.getElementById('bgwrap');
   if(!area||!frame||!wrap) return;
 
-  // Available space
-  const aw=area.clientWidth;
-  const ah=area.clientHeight;
+  // Utiliser window dimensions pour tenir compte des panels cachés
+  const gameScreen=document.getElementById('game-screen');
+  const ghdr=document.querySelector('.ghdr');
+  const sbar=document.querySelector('.sbar');
+  const hdrH=ghdr?ghdr.offsetHeight:44;
+  const sbarH=sbar?sbar.offsetHeight:36;
 
-  // Frame padding + inner padding + label sizes (approx)
-  const overhead=80; // frame(11*2) + inner(13*2) + labels(~20)
+  // Largeur disponible: fenêtre moins les panels visibles
+  let panelW=0;
+  document.querySelectorAll('.sp').forEach(p=>{
+    if(!p.classList.contains('collapsed')) panelW+=p.offsetWidth;
+  });
+  const availW=window.innerWidth-panelW-16;
+  const availH=window.innerHeight-hdrH-sbarH-16;
 
-  // Max size that fits in both dimensions
-  const maxSize=Math.min(aw, ah)-overhead;
-  const size=Math.max(maxSize, 200);
+  const overhead=80;
+  const maxSize=Math.min(availW,availH)-overhead;
+  const size=Math.max(maxSize,200);
 
-  // Set frame width (height auto from content)
   frame.style.width=size+'px';
-
-  // Grid must be a perfect square
-  const gridSize=size-overhead+20; // adjust for exact inner
+  const gridSize=size-overhead+20;
   wrap.style.width=gridSize+'px';
   wrap.style.height=gridSize+'px';
 }
@@ -3316,6 +3344,23 @@ document.addEventListener('click',function(e){
 // Fermer si clic ailleurs
 
 
+// Menu ⋯ du header
+function toggleHMenu(){
+  document.getElementById('hmenu-list').classList.toggle('open');
+}
+function closeHMenu(){
+  const m=document.getElementById('hmenu-list');
+  if(m) m.classList.remove('open');
+}
+// Fermer si clic ailleurs
+document.addEventListener('click',function(e){
+  const btn=document.getElementById('btn-hmenu');
+  const list=document.getElementById('hmenu-list');
+  if(btn&&list&&!btn.contains(e.target)&&!list.contains(e.target)){
+    list.classList.remove('open');
+  }
+});
+
 // ============================================================
 // PANELS REPLIABLES — plateau agrandi sur mobile
 // ============================================================
@@ -3349,7 +3394,7 @@ if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
     // Service worker inline via blob
     const swCode = `
-      const CACHE = 'dhamiet-v8.5';
+      const CACHE = 'dhamiet-v8.6';
       self.addEventListener('install', e => {
         e.waitUntil(caches.open(CACHE).then(cache => cache.addAll([location.href])));
         self.skipWaiting();
