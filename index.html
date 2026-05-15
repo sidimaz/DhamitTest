@@ -171,11 +171,11 @@ padding:6px;min-width:0;min-height:0;overflow:hidden;direction:ltr}
 
 /* Board outer frame */
 .bframe{background:linear-gradient(145deg,#9A6030,#6B4020,#3A1E08);
-padding:11px;border-radius:10px;width:100%;
+padding:7px;border-radius:10px;width:100%;
 box-shadow:0 16px 50px rgba(0,0,0,.75),inset 0 2px 6px rgba(255,200,120,.2)}
 
 /* Board inner (sand surface) */
-.binner{background:#D4B07A;border-radius:5px;padding:13px;
+.binner{background:#D4B07A;border-radius:5px;padding:9px;
 box-shadow:inset 0 0 20px rgba(100,55,15,.18)}
 
 /* Labels row */
@@ -361,7 +361,7 @@ width:100%;text-align:left;font-family:inherit;transition:background .15s}
       </div>
     </div>
           <button class="mbtn mbtn-dark" onclick="installPWA()" id="btn-pwa" style="display:none"><span>📲 Installer l'application</span></button>
-    <div class="ver">DHAMIÉ v8.9 • Sidimaz</div>
+    <div class="ver">DHAMIÉ v9.0 • Sidimaz</div>
   </div>
 </div>
 
@@ -430,7 +430,7 @@ width:100%;text-align:left;font-family:inherit;transition:background .15s}
       <div id="t2" class="tdisp">—</div>
       <button class="btn btn-s btn-sm" onclick="toggleSoufla()" id="btn-soufla-game">⚡ Soufla</button>
       <button class="btn btn-s btn-sm" onclick="reclamerSoufla()" id="btn-reclamer" style="display:none;background:rgba(255,100,0,.25);border-color:rgba(255,100,0,.6);color:#FF8040">🚨</button>
-      <button class="btn btn-s btn-sm" onclick="confirmerSoufla()" id="btn-confirmer" style="display:none;background:rgba(0,200,80,.2);border-color:rgba(0,200,80,.5);color:#40FF80">✅</button>
+      <button class="btn btn-s btn-sm" onclick="confirmerSoufla()" id="btn-confirmer" style="display:none;background:rgba(0,200,80,.3);border-color:rgba(0,200,80,.7);color:#40FF80;font-size:1.1rem;padding:8px 14px;min-width:48px">✅ OK</button>
       <div class="hmenu-wrap">
         <button class="hmenu-btn" onclick="toggleHMenu()" id="btn-hmenu">⋯</button>
         <div class="hmenu-list" id="hmenu-list">
@@ -506,7 +506,7 @@ width:100%;text-align:left;font-family:inherit;transition:background .15s}
         </div>
       </div>
       <!-- Labels BOTTOM (guest view: numbers 1-9, hidden by default) -->
-      <div class="lbltop" id="lbl-bottom" style="display:none;margin-top:2px;margin-bottom:0">
+      <div class="lbltop" id="lbl-bottom" style="display:none;margin-top:2px;margin-bottom:0;direction:rtl">
         <span></span>
         <span>1</span><span>2</span><span>3</span><span>4</span>
         <span>5</span><span>6</span><span>7</span><span>8</span><span>9</span>
@@ -943,16 +943,16 @@ function sizeBoard(){
     if(!p.classList.contains('collapsed')) panelW+=p.offsetWidth;
   });
 
-  const availW=window.innerWidth-panelW-4;
-  const availH=window.innerHeight-hdrH-sbarH-4;
+  const availW=window.innerWidth-panelW-2;
+  const availH=window.innerHeight-hdrH-sbarH-2;
 
-  // Overhead interne minimal
-  const overhead=60;
+  // Overhead interne minimal (frame padding + inner padding + labels)
+  const overhead=50;
   const maxSize=Math.min(availW,availH)-overhead;
   const size=Math.max(maxSize,200);
 
   frame.style.width=size+'px';
-  const gridSize=Math.max(size-overhead+10, 150);
+  const gridSize=Math.max(size-overhead+8, 150);
   wrap.style.width=gridSize+'px';
   wrap.style.height=gridSize+'px';
 }
@@ -3160,19 +3160,22 @@ function onlineCreate(){
       ch.subscribe('soufla-claim',(msg)=>{
         if(msg.data.by!==OL.role){
           const claimantName=msg.data.claimant==='red'?G.p1:G.p2;
+          const pieceC=msg.data.pieceC, pieceR=msg.data.pieceR;
           // Activer MS avec la pièce réclamée
-          if(msg.data.pieceC!==undefined){
+          if(pieceC!==undefined){
             MS.active=true;
             MS.claimant=msg.data.claimant;
-            MS.pos={c:msg.data.pieceC,r:msg.data.pieceR};
-            flashCell(msg.data.pieceC,msg.data.pieceR,'rgba(255,120,0,.6)');
+            MS.pos={c:pieceC,r:pieceR};
+            flashCell(pieceC,pieceR,'rgba(255,80,0,.8)');
           }
-          // Afficher sfb
+          // Nom de la pièce (ex: D2)
+          const pieceName = pieceC!==undefined ? cn({c:pieceC,r:pieceR}) : '';
+          // Afficher sfb avec détails complets
           const sfb=document.getElementById('sfb');
           if(sfb){
             sfb.textContent=(L==='ar'
-              ?'🚨 '+claimantName+' يطالب — اضغط ✅ للتأكيد'
-              :'🚨 '+claimantName+' réclame — Appuyez ✅ pour confirmer');
+              ?'🚨 '+claimantName+' يطالب بالقطعة '+pieceName+' — اضغط ✅ للتأكيد أو تجاهل'
+              :'🚨 '+claimantName+' réclame la pièce '+pieceName+' — Appuyez ✅ pour confirmer');
             sfb.style.display='block';
           }
           // Bouton ✅ chez l'adversaire seulement
@@ -3191,19 +3194,22 @@ function onlineCreate(){
       ch.subscribe('soufla-claim',(msg)=>{
         if(msg.data.by!==OL.role){
           const claimantName=msg.data.claimant==='red'?G.p1:G.p2;
+          const pieceC=msg.data.pieceC, pieceR=msg.data.pieceR;
           // Activer MS avec la pièce réclamée
-          if(msg.data.pieceC!==undefined){
+          if(pieceC!==undefined){
             MS.active=true;
             MS.claimant=msg.data.claimant;
-            MS.pos={c:msg.data.pieceC,r:msg.data.pieceR};
-            flashCell(msg.data.pieceC,msg.data.pieceR,'rgba(255,120,0,.6)');
+            MS.pos={c:pieceC,r:pieceR};
+            flashCell(pieceC,pieceR,'rgba(255,80,0,.8)');
           }
-          // Afficher sfb
+          // Nom de la pièce (ex: D2)
+          const pieceName = pieceC!==undefined ? cn({c:pieceC,r:pieceR}) : '';
+          // Afficher sfb avec détails complets
           const sfb=document.getElementById('sfb');
           if(sfb){
             sfb.textContent=(L==='ar'
-              ?'🚨 '+claimantName+' يطالب — اضغط ✅ للتأكيد'
-              :'🚨 '+claimantName+' réclame — Appuyez ✅ pour confirmer');
+              ?'🚨 '+claimantName+' يطالب بالقطعة '+pieceName+' — اضغط ✅ للتأكيد أو تجاهل'
+              :'🚨 '+claimantName+' réclame la pièce '+pieceName+' — Appuyez ✅ pour confirmer');
             sfb.style.display='block';
           }
           // Bouton ✅ chez l'adversaire seulement
@@ -3337,19 +3343,22 @@ function onlineJoin(){
       ch.subscribe('soufla-claim',(msg)=>{
         if(msg.data.by!==OL.role){
           const claimantName=msg.data.claimant==='red'?G.p1:G.p2;
+          const pieceC=msg.data.pieceC, pieceR=msg.data.pieceR;
           // Activer MS avec la pièce réclamée
-          if(msg.data.pieceC!==undefined){
+          if(pieceC!==undefined){
             MS.active=true;
             MS.claimant=msg.data.claimant;
-            MS.pos={c:msg.data.pieceC,r:msg.data.pieceR};
-            flashCell(msg.data.pieceC,msg.data.pieceR,'rgba(255,120,0,.6)');
+            MS.pos={c:pieceC,r:pieceR};
+            flashCell(pieceC,pieceR,'rgba(255,80,0,.8)');
           }
-          // Afficher sfb
+          // Nom de la pièce (ex: D2)
+          const pieceName = pieceC!==undefined ? cn({c:pieceC,r:pieceR}) : '';
+          // Afficher sfb avec détails complets
           const sfb=document.getElementById('sfb');
           if(sfb){
             sfb.textContent=(L==='ar'
-              ?'🚨 '+claimantName+' يطالب — اضغط ✅ للتأكيد'
-              :'🚨 '+claimantName+' réclame — Appuyez ✅ pour confirmer');
+              ?'🚨 '+claimantName+' يطالب بالقطعة '+pieceName+' — اضغط ✅ للتأكيد أو تجاهل'
+              :'🚨 '+claimantName+' réclame la pièce '+pieceName+' — Appuyez ✅ pour confirmer');
             sfb.style.display='block';
           }
           // Bouton ✅ chez l'adversaire seulement
@@ -3567,7 +3576,7 @@ if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
     // Service worker inline via blob
     const swCode = `
-      const CACHE = 'dhamiet-v8.9';
+      const CACHE = 'dhamiet-v9.0';
       self.addEventListener('install', e => {
         e.waitUntil(caches.open(CACHE).then(cache => cache.addAll([location.href])));
         self.skipWaiting();
