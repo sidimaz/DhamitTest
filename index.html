@@ -872,21 +872,37 @@ function setGuestLabels(isGuest){
 // Manual soufla (soufla OFF mode): double-tap opponent piece, confirm with corner
 
 function checkManualSoufla(c,r){
-  if(G.mode!=='local'||G.soufla||G.phase!=='play'||G.sfMode) return false;
+  // Mode local ET online: double-tap sur pièce adverse pour réclamer
+  const modeOk = (G.mode==='local'||G.mode==='online');
+  if(!modeOk||G.soufla||G.phase!=='play'||G.sfMode) return false;
+  // En ligne: seulement si c'est mon tour
+  if(G.mode==='online'&&OL.myColor!==G.turn) return false;
   const now=Date.now();
   const same=MS.lastCell&&MS.lastCell.c===c&&MS.lastCell.r===r;
   const elapsed=now-MS.lastTap;
   MS.lastTap=now; MS.lastCell={c,r};
-  if(!same||elapsed>600||elapsed<50) return false; // double tap window
+  if(!same||elapsed>600||elapsed<50) return false;
   const p=G.board[r][c];
   if(!p||p.t===G.turn) return false;
   MS.active=true; MS.claimant=G.turn; MS.pos={c,r};
   const cn2=G.turn==='red'?G.p1:G.p2;
-  const dn=G.turn==='red'?G.p2:G.p1;
-  const corners=G.turn==='red'?'I1 ou I9':'A1 ou A9';
-  document.getElementById('sfb').textContent=
-    `⚡ ${cn2} déclare Soufla sur ${cn({c,r})} ! ${dn} : confirmez en cliquant sur ${corners} (ou ignorez)`;
-  document.getElementById('sfb').style.display='block';
+  if(G.mode==='local'){
+    // Local: afficher sfb et bouton confirmer
+    const dn=G.turn==='red'?G.p2:G.p1;
+    document.getElementById('sfb').textContent=
+      `⚡ ${cn2} — Double-tap sur ${cn({c,r})} confirmé. ${dn} appuyez ✅`;
+    document.getElementById('sfb').style.display='block';
+    const cb=document.getElementById('btn-confirmer');
+    if(cb) cb.style.display='inline-block';
+  } else {
+    // En ligne: envoyer à l'adversaire, ne rien afficher ici sauf toast
+    toast((L==='ar'?'🚨 تم الإرسال — انتظر تأكيد الخصم':'🚨 Réclamation envoyée — attendez la confirmation'),3000);
+    if(OL.active&&OL.channel){
+      OL.channel.publish('soufla-claim',{
+        claimant:G.turn, pieceC:c, pieceR:r, by:OL.role
+      });
+    }
+  }
   flashCell(c,r,'rgba(255,120,0,.5)');
   renderBoard(); return true;
 }
@@ -2608,17 +2624,23 @@ function reclamerSoufla(){
 }
 
 function confirmerSoufla(){
-  if(!MS.active) return;
+  if(!MS.active||!MS.pos) return;
   // En ligne: seul l'adversaire du réclamant peut confirmer
   if(G.mode==='online'){
-    const claimantColor = MS.claimant;
-    const myColor = OL.myColor;
-    if(myColor===claimantColor){
+    if(OL.myColor===MS.claimant){
       toast(L==='ar'?'فقط الخصم يمكنه التأكيد':'Seul votre adversaire peut confirmer',2000);
       return;
     }
-    // Notifier l'adversaire de la confirmation
+    // Appliquer localement et notifier le réclamant
+    applySouflaClick(MS.pos.c,MS.pos.r);
     if(OL.channel) OL.channel.publish('soufla-confirm',{c:MS.pos.c,r:MS.pos.r,by:OL.role});
+    // Cacher sfb et bouton
+    const sfb=document.getElementById('sfb');
+    if(sfb) sfb.style.display='none';
+    const cb=document.getElementById('btn-confirmer');
+    if(cb) cb.style.display='none';
+    MS={active:false,claimant:null,pos:null,lastTap:0,lastCell:null};
+    return;
   }
   confirmManualSoufla();
 }
@@ -3137,16 +3159,25 @@ function onlineCreate(){
       });
       ch.subscribe('soufla-claim',(msg)=>{
         if(msg.data.by!==OL.role){
-          // L'adversaire réclame soufla — afficher bouton confirmer
-          const claimantName = msg.data.claimant==='red'?G.p1:G.p2;
-          toast((L==='ar'
-            ?'🚨 '+claimantName+' يطالب بسوفلة — انقر مرتين على القطعة الخاطئة'
-            :'🚨 '+claimantName+' réclame Soufla — Double-tap sur la pièce fautive'),5000);
-          const oppColor = msg.data.claimant==='red'?'green':'red';
-          for(let r=0;r<9;r++) for(let c=0;c<9;c++){
-            const p=G.board[r][c];
-            if(p&&p.t===oppColor) flashCell(c,r,'rgba(255,140,0,.35)');
+          const claimantName=msg.data.claimant==='red'?G.p1:G.p2;
+          // Activer MS avec la pièce réclamée
+          if(msg.data.pieceC!==undefined){
+            MS.active=true;
+            MS.claimant=msg.data.claimant;
+            MS.pos={c:msg.data.pieceC,r:msg.data.pieceR};
+            flashCell(msg.data.pieceC,msg.data.pieceR,'rgba(255,120,0,.6)');
           }
+          // Afficher sfb
+          const sfb=document.getElementById('sfb');
+          if(sfb){
+            sfb.textContent=(L==='ar'
+              ?'🚨 '+claimantName+' يطالب — اضغط ✅ للتأكيد'
+              :'🚨 '+claimantName+' réclame — Appuyez ✅ pour confirmer');
+            sfb.style.display='block';
+          }
+          // Bouton ✅ chez l'adversaire seulement
+          const cb=document.getElementById('btn-confirmer');
+          if(cb) cb.style.display='inline-block';
         }
       });
       ch.subscribe('soufla-toggle',(msg)=>{
@@ -3159,16 +3190,25 @@ function onlineCreate(){
       });
       ch.subscribe('soufla-claim',(msg)=>{
         if(msg.data.by!==OL.role){
-          // L'adversaire réclame soufla — afficher bouton confirmer
-          const claimantName = msg.data.claimant==='red'?G.p1:G.p2;
-          toast((L==='ar'
-            ?'🚨 '+claimantName+' يطالب بسوفلة — انقر مرتين على القطعة الخاطئة'
-            :'🚨 '+claimantName+' réclame Soufla — Double-tap sur la pièce fautive'),5000);
-          const oppColor = msg.data.claimant==='red'?'green':'red';
-          for(let r=0;r<9;r++) for(let c=0;c<9;c++){
-            const p=G.board[r][c];
-            if(p&&p.t===oppColor) flashCell(c,r,'rgba(255,140,0,.35)');
+          const claimantName=msg.data.claimant==='red'?G.p1:G.p2;
+          // Activer MS avec la pièce réclamée
+          if(msg.data.pieceC!==undefined){
+            MS.active=true;
+            MS.claimant=msg.data.claimant;
+            MS.pos={c:msg.data.pieceC,r:msg.data.pieceR};
+            flashCell(msg.data.pieceC,msg.data.pieceR,'rgba(255,120,0,.6)');
           }
+          // Afficher sfb
+          const sfb=document.getElementById('sfb');
+          if(sfb){
+            sfb.textContent=(L==='ar'
+              ?'🚨 '+claimantName+' يطالب — اضغط ✅ للتأكيد'
+              :'🚨 '+claimantName+' réclame — Appuyez ✅ pour confirmer');
+            sfb.style.display='block';
+          }
+          // Bouton ✅ chez l'adversaire seulement
+          const cb=document.getElementById('btn-confirmer');
+          if(cb) cb.style.display='inline-block';
         }
       });
       ch.subscribe('soufla-toggle',(msg)=>{
@@ -3297,15 +3337,22 @@ function onlineJoin(){
       ch.subscribe('soufla-claim',(msg)=>{
         if(msg.data.by!==OL.role){
           const claimantName=msg.data.claimant==='red'?G.p1:G.p2;
-          toast((L==='ar'
-            ?'🚨 '+claimantName+' يطالب بسوفلة — انقر مرتين على القطعة الخاطئة'
-            :'🚨 '+claimantName+' réclame Soufla — Double-tap sur la pièce fautive'),5000);
-          const oppColor=msg.data.claimant==='red'?'green':'red';
-          for(let r=0;r<9;r++) for(let c=0;c<9;c++){
-            const p=G.board[r][c];
-            if(p&&p.t===oppColor) flashCell(c,r,'rgba(255,140,0,.4)');
+          // Activer MS avec la pièce réclamée
+          if(msg.data.pieceC!==undefined){
+            MS.active=true;
+            MS.claimant=msg.data.claimant;
+            MS.pos={c:msg.data.pieceC,r:msg.data.pieceR};
+            flashCell(msg.data.pieceC,msg.data.pieceR,'rgba(255,120,0,.6)');
           }
-          // Montrer le bouton confirmer chez l'adversaire du réclamant
+          // Afficher sfb
+          const sfb=document.getElementById('sfb');
+          if(sfb){
+            sfb.textContent=(L==='ar'
+              ?'🚨 '+claimantName+' يطالب — اضغط ✅ للتأكيد'
+              :'🚨 '+claimantName+' réclame — Appuyez ✅ pour confirmer');
+            sfb.style.display='block';
+          }
+          // Bouton ✅ chez l'adversaire seulement
           const cb=document.getElementById('btn-confirmer');
           if(cb) cb.style.display='inline-block';
         }
