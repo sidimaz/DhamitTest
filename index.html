@@ -908,7 +908,7 @@ function checkManualSoufla(c,r){
       :'🚨 Réclamation pièce '+pieceName+' — attendez la confirmation'),4000);
     if(OL.active&&OL.channel){
       OL.channel.publish('soufla-claim',{
-        claimant:G.turn, pieceC:c, pieceR:r, by:OL.role
+        claimant:G.turn, pieceC:c, pieceR:r, connId:OL.connId
       });
     }
   }
@@ -1582,7 +1582,7 @@ function switchTurn(){
     setTimeout(aiTurn, 600+Math.random()*400);
   // Online: broadcast turn sync
   if(G.mode==='online'&&OL.active&&!OL.receiving)
-    OL.channel.publish('sync',{turn:G.turn,mc:G.mc,by:OL.role});
+    OL.channel.publish('sync',{turn:G.turn,mc:G.mc,connId:OL.connId});
 }
 
 // ============================================================
@@ -1617,7 +1617,7 @@ function triggerSoufla(offender, faultyPieces){
 
   // Online: notify opponent about soufla state
   if(G.mode==='online'&&OL.active&&!OL.receiving){
-    OL.channel.publish('soufla',{offender,faultyPieces,by:OL.role});
+    OL.channel.publish('soufla',{offender,faultyPieces,connId:OL.connId});
   }
 
   if(G.mode==='ai'&&G.turn==='green'){
@@ -1640,7 +1640,7 @@ function handleSouflaClick(c,r){
   }
   // Online: send soufla choice to opponent
   if(G.mode==='online'&&OL.active&&!OL.receiving){
-    OL.channel.publish('soufla-pick',{c,r,by:OL.role});
+    OL.channel.publish('soufla-pick',{c,r,connId:OL.connId});
   }
   // Une seule pièce par procédure
   G.sfTgt = [{c,r}];
@@ -2633,7 +2633,7 @@ function confirmerSoufla(){
     }
     // Appliquer localement et notifier le réclamant
     applySouflaClick(MS.pos.c,MS.pos.r);
-    if(OL.channel) OL.channel.publish('soufla-confirm',{c:MS.pos.c,r:MS.pos.r,by:OL.role});
+    if(OL.channel) OL.channel.publish('soufla-confirm',{c:MS.pos.c,r:MS.pos.r,connId:OL.connId});
     // Cacher sfb et bouton
     const sfb=document.getElementById('sfb');
     if(sfb) sfb.style.display='none';
@@ -2890,7 +2890,7 @@ function requestUndo(){
     const requester = OL.myColor==='red' ? G.p1 : G.p2;
     undoPending = true;
     // Envoyer demande à l'adversaire
-    OL.channel.publish('undo-request',{requester,by:OL.role});
+    OL.channel.publish('undo-request',{requester,connId:OL.connId});
     toast((L==='ar'?'طلب تراجع أرسل':'Demande envoyée'),2000);
   }
 }
@@ -3059,7 +3059,7 @@ function toggleSoufla(){
   updateReclamerButton();
   // Synchroniser en ligne
   if(G.mode==='online'&&OL.active&&OL.channel){
-    OL.channel.publish('soufla-toggle',{soufla:G.soufla,by:OL.role});
+    OL.channel.publish('soufla-toggle',{soufla:G.soufla,connId:OL.connId});
   }
 }
 
@@ -3137,6 +3137,7 @@ function onlineCreate(){
     const ably=new Ably.Realtime({key:ABLY_KEY,clientId:'host-'+code});
     OL.ably=ably;
     ably.connection.on('connected',()=>{
+      OL.connId = ably.connection.id; // ID unique de cette connexion
       const ch=ably.channels.get('dhamiet-'+code);
       OL.channel=ch;
       ch.subscribe('join',(msg)=>{
@@ -3146,7 +3147,7 @@ function onlineCreate(){
         closeModal();startOnlineGame();
       });
       ch.subscribe('move',(msg)=>{
-        if(OL.active&&msg.data.by!==OL.role){
+        if(OL.active&&(!OL.connId||msg.data.connId!==OL.connId)){
           OL.receiving=true;
           // Verify turn sync - if sender's turn matches expected, apply
           if(msg.data.turn && msg.data.turn!==G.turn){
@@ -3157,7 +3158,7 @@ function onlineCreate(){
           OL.receiving=false;
         }
       });      ch.subscribe('soufla-claim',(msg)=>{
-        if(msg.data.by!==OL.role){
+        if(!OL.connId||msg.data.connId!==OL.connId){
           const claimantName=msg.data.claimant==='red'?G.p1:G.p2;
           const pieceC=msg.data.pieceC, pieceR=msg.data.pieceR;
           if(pieceC!==undefined){
@@ -3183,14 +3184,14 @@ function onlineCreate(){
         }
       });
       ch.subscribe('soufla-toggle',(msg)=>{
-        if(msg.data.by!==OL.role){
+        if(!OL.connId||msg.data.connId!==OL.connId){
           G.soufla=msg.data.soufla;
           updateSouflaBtn();
           updateReclamerButton();
           toast((G.soufla?(L==='ar'?'السوفلة مفعّلة':'Soufla activée'):(L==='ar'?'السوفلة معطّلة':'Soufla désactivée')),1500);
         }
       });      ch.subscribe('soufla-toggle',(msg)=>{
-        if(msg.data.by!==OL.role){
+        if(!OL.connId||msg.data.connId!==OL.connId){
           G.soufla=msg.data.soufla;
           updateSouflaBtn();
           updateReclamerButton();
@@ -3198,38 +3199,38 @@ function onlineCreate(){
         }
       });
       ch.subscribe('soufla',(msg)=>{
-        if(msg.data.by!==OL.role){
+        if(!OL.connId||msg.data.connId!==OL.connId){
           OL.receiving=true;
           triggerSoufla(msg.data.offender,msg.data.faultyPieces);
           OL.receiving=false;
         }
       });
       ch.subscribe('soufla-pick',(msg)=>{
-        if(msg.data.by!==OL.role){
+        if(!OL.connId||msg.data.connId!==OL.connId){
           OL.receiving=true;
           applySouflaClick(msg.data.c,msg.data.r);
           OL.receiving=false;
         }
       });
       ch.subscribe('undo-request',(msg)=>{
-        if(msg.data.by!==OL.role){
+        if(!OL.connId||msg.data.connId!==OL.connId){
           const requester=msg.data.requester;
           showModal('↩',
             L==='ar'?'طلب تراجع':"Demande d'annulation",
             (L==='ar'?requester+' يطلب التراجع، هل تقبل؟':requester+' demande à annuler. Acceptez-vous ?'),
-            [{tx:'✅ Oui',c:'btn-p',fn:"OL.channel.publish('undo-accept',{by:OL.role});acceptUndo();closeModal()"},
-             {tx:'❌ Non',c:'btn-d',fn:"OL.channel.publish('undo-refuse',{by:OL.role});refuseUndo();closeModal()"}]
+            [{tx:'✅ Oui',c:'btn-p',fn:"OL.channel.publish('undo-accept',{connId:OL.connId});acceptUndo();closeModal()"},
+             {tx:'❌ Non',c:'btn-d',fn:"OL.channel.publish('undo-refuse',{connId:OL.connId});refuseUndo();closeModal()"}]
           );
         }
       });
       ch.subscribe('undo-accept',(msg)=>{
-        if(msg.data.by!==OL.role){ acceptUndo(); closeModal(); }
+        if(!OL.connId||msg.data.connId!==OL.connId){ acceptUndo(); closeModal(); }
       });
       ch.subscribe('undo-refuse',(msg)=>{
-        if(msg.data.by!==OL.role){ refuseUndo(); closeModal(); }
+        if(!OL.connId||msg.data.connId!==OL.connId){ refuseUndo(); closeModal(); }
       });
             ch.subscribe('soufla-confirm',(msg)=>{
-        if(msg.data.by!==OL.role){
+        if(!OL.connId||msg.data.connId!==OL.connId){
           // Le réclamant reçoit la confirmation — appliquer la suppression
           const c=msg.data.c, r=msg.data.r;
           const p=G.board[r]&&G.board[r][c];
@@ -3250,7 +3251,7 @@ function onlineCreate(){
         }
       });
             ch.subscribe('sync',(msg)=>{
-        if(msg.data.by!==OL.role&&OL.active&&G.turn!==msg.data.turn){
+        if((!OL.connId||msg.data.connId!==OL.connId)&&OL.active&&G.turn!==msg.data.turn){
           G.turn=msg.data.turn; renderBoard();updateUI();
         }
       });
@@ -3285,6 +3286,7 @@ function onlineJoin(){
     const ably=new Ably.Realtime({key:ABLY_KEY,clientId:'guest-'+Date.now()});
     OL.ably=ably;
     ably.connection.on('connected',()=>{
+      OL.connId = ably.connection.id;
       const ch=ably.channels.get('dhamiet-'+code);
       OL.channel=ch;
       let found=false;
@@ -3300,26 +3302,26 @@ function onlineJoin(){
         onlineStatus('');startOnlineGame();
       });
       ch.subscribe('move',(msg)=>{
-        if(OL.active&&msg.data.by!==OL.role){
+        if(OL.active&&(!OL.connId||msg.data.connId!==OL.connId)){
           OL.receiving=true;doMove(msg.data.from,msg.data.to);OL.receiving=false;
         }
       });
       ch.subscribe('soufla',(msg)=>{
-        if(msg.data.by!==OL.role){
+        if(!OL.connId||msg.data.connId!==OL.connId){
           OL.receiving=true;
           triggerSoufla(msg.data.offender,msg.data.faultyPieces);
           OL.receiving=false;
         }
       });
       ch.subscribe('soufla-pick',(msg)=>{
-        if(msg.data.by!==OL.role){
+        if(!OL.connId||msg.data.connId!==OL.connId){
           OL.receiving=true;
           applySouflaClick(msg.data.c,msg.data.r);
           OL.receiving=false;
         }
       });
       ch.subscribe('soufla-claim',(msg)=>{
-        if(msg.data.by!==OL.role){
+        if(!OL.connId||msg.data.connId!==OL.connId){
           const claimantName=msg.data.claimant==='red'?G.p1:G.p2;
           const pieceC=msg.data.pieceC, pieceR=msg.data.pieceR;
           if(pieceC!==undefined){
@@ -3345,31 +3347,31 @@ function onlineJoin(){
         }
       });
       ch.subscribe('soufla-toggle',(msg)=>{
-        if(msg.data.by!==OL.role){
+        if(!OL.connId||msg.data.connId!==OL.connId){
           G.soufla=msg.data.soufla;
           updateSouflaBtn();
           updateReclamerButton();
           toast((G.soufla?(L==='ar'?'السوفلة مفعّلة':'Soufla activée'):(L==='ar'?'السوفلة معطّلة':'Soufla désactivée')),1500);
         }
       });      ch.subscribe('undo-request',(msg)=>{
-        if(msg.data.by!==OL.role){
+        if(!OL.connId||msg.data.connId!==OL.connId){
           const requester=msg.data.requester;
           showModal('↩',
             L==='ar'?'طلب تراجع':"Demande d'annulation",
             (L==='ar'?requester+' يطلب التراجع، هل تقبل؟':requester+' demande à annuler. Acceptez-vous ?'),
-            [{tx:'✅ Oui',c:'btn-p',fn:"OL.channel.publish('undo-accept',{by:OL.role});acceptUndo();closeModal()"},
-             {tx:'❌ Non',c:'btn-d',fn:"OL.channel.publish('undo-refuse',{by:OL.role});refuseUndo();closeModal()"}]
+            [{tx:'✅ Oui',c:'btn-p',fn:"OL.channel.publish('undo-accept',{connId:OL.connId});acceptUndo();closeModal()"},
+             {tx:'❌ Non',c:'btn-d',fn:"OL.channel.publish('undo-refuse',{connId:OL.connId});refuseUndo();closeModal()"}]
           );
         }
       });
       ch.subscribe('undo-accept',(msg)=>{
-        if(msg.data.by!==OL.role){ acceptUndo(); closeModal(); }
+        if(!OL.connId||msg.data.connId!==OL.connId){ acceptUndo(); closeModal(); }
       });
       ch.subscribe('undo-refuse',(msg)=>{
-        if(msg.data.by!==OL.role){ refuseUndo(); closeModal(); }
+        if(!OL.connId||msg.data.connId!==OL.connId){ refuseUndo(); closeModal(); }
       });
             ch.subscribe('soufla-confirm',(msg)=>{
-        if(msg.data.by!==OL.role){
+        if(!OL.connId||msg.data.connId!==OL.connId){
           // Le réclamant reçoit la confirmation — appliquer la suppression
           const c=msg.data.c, r=msg.data.r;
           const p=G.board[r]&&G.board[r][c];
@@ -3390,7 +3392,7 @@ function onlineJoin(){
         }
       });
       ch.subscribe('sync',(msg)=>{
-        if(msg.data.by!==OL.role&&OL.active&&G.turn!==msg.data.turn){
+        if((!OL.connId||msg.data.connId!==OL.connId)&&OL.active&&G.turn!==msg.data.turn){
           G.turn=msg.data.turn; renderBoard();updateUI();
         }
       });
@@ -3439,7 +3441,7 @@ function startOnlineGame(){
 
 function pushOnlineMove(from,to){
   if(OL.active&&OL.channel)
-    OL.channel.publish('move',{from,to,by:OL.role,turn:G.turn,mc:G.mc});
+    OL.channel.publish('move',{from,to,connId:OL.connId,turn:G.turn,mc:G.mc});
 }
 
 function shareCode6(code){
