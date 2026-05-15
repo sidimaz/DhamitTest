@@ -365,7 +365,7 @@ width:100%;text-align:left;font-family:inherit;transition:background .15s}
       </div>
     </div>
           <button class="mbtn mbtn-dark" onclick="installPWA()" id="btn-pwa" style="display:none"><span>📲 Installer l'application</span></button>
-    <div class="ver">DHAMIÉ v9.4 • Sidimaz</div>
+    <div class="ver">DHAMIÉ v9.4dd • Sidimaz</div>
   </div>
 </div>
 
@@ -908,9 +908,9 @@ function checkManualSoufla(c,r){
       ?'🚨 مطالبة بالقطعة '+pieceName+' — انتظر تأكيد الخصم'
       :'🚨 Réclamation pièce '+pieceName+' — attendez la confirmation'),4000);
     if(OL.active&&OL.channel){
-      OL.channel.publish('soufla-claim',{
-        claimant:G.turn, pieceC:c, pieceR:r, connId:OL.connId
-      });
+      const msg={claimant:G.turn, pieceC:c, pieceR:r, connId:OL.connId};
+      toast('📤 ENVOI connId='+(OL.connId||'?'), 3000);
+      OL.channel.publish('soufla-claim', msg);
     }
   }
   flashCell(c,r,'rgba(255,120,0,.5)');
@@ -3161,6 +3161,7 @@ function onlineCreate(){
           OL.receiving=false;
         }
       });      ch.subscribe('soufla-claim',(msg)=>{
+        toast('📨 MSG RECU connId='+(msg.data.connId||'?')+' mine='+(OL.connId||'?'), 5000);
         if(!OL.connId||msg.data.connId!==OL.connId){
           const claimantName=msg.data.claimant==='red'?G.p1:G.p2;
           const pieceC=msg.data.pieceC, pieceR=msg.data.pieceR;
@@ -3324,6 +3325,7 @@ function onlineJoin(){
         }
       });
       ch.subscribe('soufla-claim',(msg)=>{
+        toast('📨 MSG RECU connId='+(msg.data.connId||'?')+' mine='+(OL.connId||'?'), 5000);
         if(!OL.connId||msg.data.connId!==OL.connId){
           const claimantName=msg.data.claimant==='red'?G.p1:G.p2;
           const pieceC=msg.data.pieceC, pieceR=msg.data.pieceR;
@@ -3580,7 +3582,7 @@ if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
     // Service worker inline via blob
     const swCode = `
-      const CACHE = 'dhamiet-v9.4';
+      const CACHE = 'dhamiet-v9.4d';
       self.addEventListener('install', e => {
         e.waitUntil(caches.open(CACHE).then(cache => cache.addAll([location.href])));
         self.skipWaiting();
