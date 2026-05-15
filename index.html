@@ -3,7 +3,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, minimum-scale=1.0, maximum-scale=5.0">
 <title>ظامِتْ | Dhamié</title>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -182,6 +182,7 @@ box-shadow:inset 0 0 20px rgba(100,55,15,.18)}
 .lbltop{display:grid;grid-template-columns:18px repeat(9,1fr);
 margin-bottom:2px;font-size:.58rem;color:rgba(55,30,8,.8);font-weight:700;
 direction:ltr}
+.lbltop.guest-lbl{grid-template-columns:repeat(9,1fr) 18px}
 .lbltop span{display:flex;align-items:center;justify-content:center}
 
 /* Main board row */
@@ -302,9 +303,11 @@ z-index:200;pointer-events:none;text-align:center;max-width:88vw}
 display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr)}
 @media(max-width:600px) and (orientation:portrait){
 .glayout{flex-direction:column}
-.sp{width:100%;flex-direction:row;flex-wrap:wrap;max-height:100px;overflow:hidden;padding:5px 8px;gap:5px}
-.pcard{min-width:140px;flex:1;padding:6px 8px}
-.sttl2,.mhist,.ibox{display:none}.rp{display:none}
+.sp{width:100%;flex-direction:row;flex-wrap:wrap;max-height:90px;overflow:hidden;padding:4px 8px;gap:4px}
+.pcard{min-width:130px;flex:1;padding:5px 7px}
+.sttl2,.mhist,.ibox,.caps,.ppc{display:none}.rp{display:none}
+#cap1l,#cap2l,#p1cap,#p2cap{display:none}
+#sfb{font-size:.7rem}
 }
 @media(max-width:900px) and (orientation:landscape){
 .sp{width:120px;font-size:.75rem}
@@ -362,7 +365,7 @@ width:100%;text-align:left;font-family:inherit;transition:background .15s}
       </div>
     </div>
           <button class="mbtn mbtn-dark" onclick="installPWA()" id="btn-pwa" style="display:none"><span>📲 Installer l'application</span></button>
-    <div class="ver">DHAMIÉ v9.1 • Sidimaz</div>
+    <div class="ver">DHAMIÉ v9.2 • Sidimaz</div>
   </div>
 </div>
 
@@ -868,6 +871,8 @@ function setGuestLabels(isGuest){
   bot.style.display = isGuest?'':'none';
   lft.style.display = isGuest?'none':'';
   rgt.style.display = isGuest?'':'none';
+  // Appliquer la bonne grille pour l'invité
+  if(bot) bot.classList.toggle('guest-lbl', isGuest);
 }
 
 // Manual soufla (soufla OFF mode): double-tap opponent piece, confirm with corner
@@ -3151,31 +3156,30 @@ function onlineCreate(){
           doMove(msg.data.from,msg.data.to);
           OL.receiving=false;
         }
-      });
-      ch.subscribe('soufla-claim',(msg)=>{
+      });      ch.subscribe('soufla-claim',(msg)=>{
         if(msg.data.by!==OL.role){
           const claimantName=msg.data.claimant==='red'?G.p1:G.p2;
           const pieceC=msg.data.pieceC, pieceR=msg.data.pieceR;
-          // Activer MS avec la pièce réclamée
           if(pieceC!==undefined){
             MS.active=true;
             MS.claimant=msg.data.claimant;
             MS.pos={c:pieceC,r:pieceR};
             flashCell(pieceC,pieceR,'rgba(255,80,0,.8)');
           }
-          // Nom de la pièce (ex: D2)
-          const pieceName = pieceC!==undefined ? cn({c:pieceC,r:pieceR}) : '';
-          // Afficher sfb avec détails complets
+          const pieceName=pieceC!==undefined?cn({c:pieceC,r:pieceR}):'';
           const sfb=document.getElementById('sfb');
           if(sfb){
             sfb.textContent=(L==='ar'
-              ?'🚨 '+claimantName+' يطالب بالقطعة '+pieceName+' — اضغط ✅ للتأكيد أو تجاهل'
-              :'🚨 '+claimantName+' réclame la pièce '+pieceName+' — Appuyez ✅ pour confirmer');
+              ?'🚨 '+claimantName+' يطالب بالقطعة '+pieceName+' — اضغط ✅ للتأكيد'
+              :'🚨 '+claimantName+' réclame la pièce '+pieceName+' — Appuyez ✅');
             sfb.style.display='block';
           }
-          // Bouton ✅ chez l'adversaire seulement
           const cb=document.getElementById('btn-confirmer');
           if(cb) cb.style.display='inline-block';
+          // Alerter si en mode zoom
+          try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(e){}
+          playSound('soufla');
+          toast('🚨 '+(L==='ar'?'مطالبة سوفلة!':'Soufla réclamée !'),3000);
         }
       });
       ch.subscribe('soufla-toggle',(msg)=>{
@@ -3185,34 +3189,7 @@ function onlineCreate(){
           updateReclamerButton();
           toast((G.soufla?(L==='ar'?'السوفلة مفعّلة':'Soufla activée'):(L==='ar'?'السوفلة معطّلة':'Soufla désactivée')),1500);
         }
-      });
-      ch.subscribe('soufla-claim',(msg)=>{
-        if(msg.data.by!==OL.role){
-          const claimantName=msg.data.claimant==='red'?G.p1:G.p2;
-          const pieceC=msg.data.pieceC, pieceR=msg.data.pieceR;
-          // Activer MS avec la pièce réclamée
-          if(pieceC!==undefined){
-            MS.active=true;
-            MS.claimant=msg.data.claimant;
-            MS.pos={c:pieceC,r:pieceR};
-            flashCell(pieceC,pieceR,'rgba(255,80,0,.8)');
-          }
-          // Nom de la pièce (ex: D2)
-          const pieceName = pieceC!==undefined ? cn({c:pieceC,r:pieceR}) : '';
-          // Afficher sfb avec détails complets
-          const sfb=document.getElementById('sfb');
-          if(sfb){
-            sfb.textContent=(L==='ar'
-              ?'🚨 '+claimantName+' يطالب بالقطعة '+pieceName+' — اضغط ✅ للتأكيد أو تجاهل'
-              :'🚨 '+claimantName+' réclame la pièce '+pieceName+' — Appuyez ✅ pour confirmer');
-            sfb.style.display='block';
-          }
-          // Bouton ✅ chez l'adversaire seulement
-          const cb=document.getElementById('btn-confirmer');
-          if(cb) cb.style.display='inline-block';
-        }
-      });
-      ch.subscribe('soufla-toggle',(msg)=>{
+      });      ch.subscribe('soufla-toggle',(msg)=>{
         if(msg.data.by!==OL.role){
           G.soufla=msg.data.soufla;
           updateSouflaBtn();
@@ -3341,6 +3318,32 @@ function onlineJoin(){
           OL.receiving=false;
         }
       });
+      ch.subscribe('soufla-claim',(msg)=>{
+        if(msg.data.by!==OL.role){
+          const claimantName=msg.data.claimant==='red'?G.p1:G.p2;
+          const pieceC=msg.data.pieceC, pieceR=msg.data.pieceR;
+          if(pieceC!==undefined){
+            MS.active=true;
+            MS.claimant=msg.data.claimant;
+            MS.pos={c:pieceC,r:pieceR};
+            flashCell(pieceC,pieceR,'rgba(255,80,0,.8)');
+          }
+          const pieceName=pieceC!==undefined?cn({c:pieceC,r:pieceR}):'';
+          const sfb=document.getElementById('sfb');
+          if(sfb){
+            sfb.textContent=(L==='ar'
+              ?'🚨 '+claimantName+' يطالب بالقطعة '+pieceName+' — اضغط ✅ للتأكيد'
+              :'🚨 '+claimantName+' réclame la pièce '+pieceName+' — Appuyez ✅');
+            sfb.style.display='block';
+          }
+          const cb=document.getElementById('btn-confirmer');
+          if(cb) cb.style.display='inline-block';
+          // Alerter si en mode zoom
+          try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(e){}
+          playSound('soufla');
+          toast('🚨 '+(L==='ar'?'مطالبة سوفلة!':'Soufla réclamée !'),3000);
+        }
+      });
       ch.subscribe('soufla-toggle',(msg)=>{
         if(msg.data.by!==OL.role){
           G.soufla=msg.data.soufla;
@@ -3348,34 +3351,7 @@ function onlineJoin(){
           updateReclamerButton();
           toast((G.soufla?(L==='ar'?'السوفلة مفعّلة':'Soufla activée'):(L==='ar'?'السوفلة معطّلة':'Soufla désactivée')),1500);
         }
-      });
-      ch.subscribe('soufla-claim',(msg)=>{
-        if(msg.data.by!==OL.role){
-          const claimantName=msg.data.claimant==='red'?G.p1:G.p2;
-          const pieceC=msg.data.pieceC, pieceR=msg.data.pieceR;
-          // Activer MS avec la pièce réclamée
-          if(pieceC!==undefined){
-            MS.active=true;
-            MS.claimant=msg.data.claimant;
-            MS.pos={c:pieceC,r:pieceR};
-            flashCell(pieceC,pieceR,'rgba(255,80,0,.8)');
-          }
-          // Nom de la pièce (ex: D2)
-          const pieceName = pieceC!==undefined ? cn({c:pieceC,r:pieceR}) : '';
-          // Afficher sfb avec détails complets
-          const sfb=document.getElementById('sfb');
-          if(sfb){
-            sfb.textContent=(L==='ar'
-              ?'🚨 '+claimantName+' يطالب بالقطعة '+pieceName+' — اضغط ✅ للتأكيد أو تجاهل'
-              :'🚨 '+claimantName+' réclame la pièce '+pieceName+' — Appuyez ✅ pour confirmer');
-            sfb.style.display='block';
-          }
-          // Bouton ✅ chez l'adversaire seulement
-          const cb=document.getElementById('btn-confirmer');
-          if(cb) cb.style.display='inline-block';
-        }
-      });
-      ch.subscribe('undo-request',(msg)=>{
+      });      ch.subscribe('undo-request',(msg)=>{
         if(msg.data.by!==OL.role){
           const requester=msg.data.requester;
           showModal('↩',
@@ -3599,7 +3575,7 @@ if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
     // Service worker inline via blob
     const swCode = `
-      const CACHE = 'dhamiet-v9.1';
+      const CACHE = 'dhamiet-v9.2';
       self.addEventListener('install', e => {
         e.waitUntil(caches.open(CACHE).then(cache => cache.addAll([location.href])));
         self.skipWaiting();
