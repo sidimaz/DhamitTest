@@ -365,7 +365,7 @@ width:100%;text-align:left;font-family:inherit;transition:background .15s}
       </div>
     </div>
           <button class="mbtn mbtn-dark" onclick="installPWA()" id="btn-pwa" style="display:none"><span>📲 Installer l'application</span></button>
-    <div class="ver">DHAMIÉ v9.3 • Sidimaz</div>
+    <div class="ver">DHAMIÉ v9.4 • Sidimaz</div>
   </div>
 </div>
 
@@ -881,8 +881,9 @@ function checkManualSoufla(c,r){
   // Mode local ET online: double-tap sur pièce adverse pour réclamer
   const modeOk = (G.mode==='local'||G.mode==='online');
   if(!modeOk||G.soufla||G.phase!=='play'||G.sfMode) return false;
-  // En ligne: seulement si c'est mon tour
-  if(G.mode==='online'&&OL.myColor!==G.turn) return false;
+  // En ligne: réclamer quand c'est le tour de l'ADVERSAIRE
+  // (je viens de voir son coup sans capture alors qu'il pouvait)
+  if(G.mode==='online'&&OL.myColor===G.turn) return false;
   const now=Date.now();
   const same=MS.lastCell&&MS.lastCell.c===c&&MS.lastCell.r===r;
   const elapsed=now-MS.lastTap;
@@ -1257,12 +1258,12 @@ function updCap(id,count,type){
 function onCell(c,r){
   if(G.over) return;
   let fc=c, fr=r;
-  // Soufla manuelle double-tap
-  if(checkManualSoufla(fc,fr)) return;
-  // Manual soufla corner confirmation (soufla OFF mode)
+  // Confirmer coin (soufla manuelle locale)
   if(MS.active&&checkManualSouflaCorner(fc,fr)) return;
-  if(MS.active){MS={active:false,claimant:null,pos:null,lastTap:0,lastCell:null};
-    document.getElementById("sfb").style.display="none";}
+  if(MS.active&&G.mode==='local'){
+    MS={active:false,claimant:null,pos:null,lastTap:0,lastCell:null};
+    document.getElementById("sfb").style.display="none";
+  }
   if(G.sfMode){
     if(G.mode==='ai'&&G.turn==='green') return;
     if(G.mode==='online'&&G.turn!==OL.myColor) return;
@@ -1270,9 +1271,11 @@ function onCell(c,r){
   }
   if(G.mode==='ai'&&G.turn==='green') return;
   if(G.mode==='online'&&G.turn!==OL.myColor){
+    // En ligne hors tour: double-tap pour réclamation seulement
+    if(checkManualSoufla(fc,fr)) return;
     toast(L==='ar'?'انتظر دور خصمك':'Attendez votre tour',1200); return;
   }
-  // Double-tap = manual soufla claim (soufla OFF, local mode)
+  // Double-tap = réclamer soufla (local: mon tour aussi)
   if(checkManualSoufla(fc,fr)) return;
   if(G.phase==='atk') handleWerde(fc,fr);
   else handlePlay(fc,fr);
@@ -2608,7 +2611,7 @@ function updateReclamerButton(){
 
 function reclamerSoufla(){
   if(G.soufla||G.phase!=='play'||G.sfMode||MS.active) return;
-  if(G.mode==='online'&&OL.myColor!==G.turn) return;
+  if(G.mode==='online'&&OL.myColor===G.turn) return; // Je réclame quand c'est le tour adverse
   const faultyColor = G.turn==='red'?'green':'red';
   // Inviter à double-taper sur la pièce fautive
   toast((L==='ar'
@@ -3577,7 +3580,7 @@ if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
     // Service worker inline via blob
     const swCode = `
-      const CACHE = 'dhamiet-v9.3';
+      const CACHE = 'dhamiet-v9.4';
       self.addEventListener('install', e => {
         e.waitUntil(caches.open(CACHE).then(cache => cache.addAll([location.href])));
         self.skipWaiting();
