@@ -312,9 +312,9 @@ display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr
 }
 
 .hmenu-wrap{position:relative}
-.hmenu-btn{background:rgba(201,147,58,.15);border:1px solid rgba(201,147,58,.4);
-color:var(–gold);padding:7px 12px;border-radius:6px;cursor:pointer;
-font-size:1.1rem;font-weight:700;line-height:1;min-height:34px;min-width:40px}
+.hmenu-btn{background:rgba(201,147,58,.25);border:1.5px solid rgba(201,147,58,.7);
+color:var(–gold);padding:7px 13px;border-radius:6px;cursor:pointer;
+font-size:1.2rem;font-weight:900;line-height:1;min-height:36px;min-width:44px}
 .hmenu-list{position:absolute;top:calc(100% + 6px);right:0;
 background:#221508;border:1.5px solid rgba(201,147,58,.5);
 border-radius:10px;display:none;z-index:200;
@@ -361,7 +361,7 @@ width:100%;text-align:left;font-family:inherit;transition:background .15s}
       </div>
     </div>
           <button class="mbtn mbtn-dark" onclick="installPWA()" id="btn-pwa" style="display:none"><span>📲 Installer l'application</span></button>
-    <div class="ver">DHAMIÉ v8.8 • Sidimaz</div>
+    <div class="ver">DHAMIÉ v8.9 • Sidimaz</div>
   </div>
 </div>
 
@@ -2567,29 +2567,42 @@ let MS={active:false,claimant:null,pos:null,lastTap:0,lastCell:null};
 
 function updateReclamerButton(){
   const btn=document.getElementById('btn-reclamer');
+  const btnC=document.getElementById('btn-confirmer');
   if(!btn) return;
-  btn.style.display=(!G.soufla&&G.phase==='play'&&!G.over)?'inline-block':'none';
+  // Bouton Réclamer: visible seulement quand soufla OFF, phase play,
+  // et c'est MON tour (je peux réclamer contre l'adversaire qui vient de jouer)
+  // En ligne: seulement si c'est ma couleur qui doit jouer
+  let canClaim = !G.soufla && G.phase==='play' && !G.over && !G.sfMode;
+  if(G.mode==='online' && canClaim){
+    canClaim = (OL.myColor === G.turn); // Mon tour = je réclame
+  }
+  btn.style.display = canClaim ? 'inline-block' : 'none';
+  // Bouton Confirmer: caché par défaut, visible seulement sur réclamation adverse
+  if(btnC && !MS.active) btnC.style.display='none';
 }
 
 function reclamerSoufla(){
   if(G.soufla||G.phase!=='play'||G.sfMode||MS.active) return;
+  // Vérifier que c'est bien MON tour (je réclame contre l'adversaire)
+  if(G.mode==='online'&&OL.myColor!==G.turn) return;
   const claimantColor = G.turn;
   const claimantName = G.turn==='red'?G.p1:G.p2;
   const faultyColor = G.turn==='red'?'green':'red';
+  // Toast chez le réclamant
   toast((L==='ar'
-    ?'🚨 '+claimantName+' يطالب — انقر مرتين على القطعة الخاطئة'
-    :'🚨 '+claimantName+' réclame — Double-tap sur la pièce fautive'),5000);
+    ?'🚨 انقر مرتين على القطعة الخاطئة'
+    :'🚨 Double-tap sur la pièce fautive'),5000);
   for(let r=0;r<9;r++) for(let c=0;c<9;c++){
     const p=G.board[r][c];
     if(p&&p.t===faultyColor) flashCell(c,r,'rgba(255,140,0,.4)');
   }
-  // En mode local: bouton confirmer visible (même écran, adversaire peut confirmer)
+  // Bouton ✅: JAMAIS chez le réclamant
+  // En mode local: visible sur le même écran (adversaire peut confirmer)
+  // En ligne: envoyé à l'adversaire via soufla-claim
   if(G.mode!=='online'){
     const cb=document.getElementById('btn-confirmer');
     if(cb) cb.style.display='inline-block';
-  }
-  // En ligne: notifier l'adversaire qui verra le bouton ✅
-  if(G.mode==='online'&&OL.active&&OL.channel){
+  } else if(OL.active&&OL.channel){
     OL.channel.publish('soufla-claim',{claimant:claimantColor,by:OL.role});
   }
 }
@@ -2850,6 +2863,13 @@ function requestUndo(){
       [{tx:'✅ Oui', c:'btn-p', fn:'acceptUndo()'},
        {tx:'❌ Non', c:'btn-d', fn:'refuseUndo()'}]
     );
+  }
+  if(G.mode==='online'&&OL.active&&OL.channel){
+    const requester = OL.myColor==='red' ? G.p1 : G.p2;
+    undoPending = true;
+    // Envoyer demande à l'adversaire
+    OL.channel.publish('undo-request',{requester,by:OL.role});
+    toast((L==='ar'?'طلب تراجع أرسل':'Demande envoyée'),2000);
   }
 }
 
@@ -3173,7 +3193,24 @@ function onlineCreate(){
           OL.receiving=false;
         }
       });
-      ch.subscribe('soufla-confirm',(msg)=>{
+      ch.subscribe('undo-request',(msg)=>{
+        if(msg.data.by!==OL.role){
+          const requester=msg.data.requester;
+          showModal('↩',
+            L==='ar'?'طلب تراجع':"Demande d'annulation",
+            (L==='ar'?requester+' يطلب التراجع، هل تقبل؟':requester+' demande à annuler. Acceptez-vous ?'),
+            [{tx:'✅ Oui',c:'btn-p',fn:"OL.channel.publish('undo-accept',{by:OL.role});acceptUndo();closeModal()"},
+             {tx:'❌ Non',c:'btn-d',fn:"OL.channel.publish('undo-refuse',{by:OL.role});refuseUndo();closeModal()"}]
+          );
+        }
+      });
+      ch.subscribe('undo-accept',(msg)=>{
+        if(msg.data.by!==OL.role){ acceptUndo(); closeModal(); }
+      });
+      ch.subscribe('undo-refuse',(msg)=>{
+        if(msg.data.by!==OL.role){ refuseUndo(); closeModal(); }
+      });
+            ch.subscribe('soufla-confirm',(msg)=>{
         if(msg.data.by!==OL.role){
           OL.receiving=true;
           applySouflaClick(msg.data.c,msg.data.r);
@@ -3273,7 +3310,24 @@ function onlineJoin(){
           if(cb) cb.style.display='inline-block';
         }
       });
-      ch.subscribe('soufla-confirm',(msg)=>{
+      ch.subscribe('undo-request',(msg)=>{
+        if(msg.data.by!==OL.role){
+          const requester=msg.data.requester;
+          showModal('↩',
+            L==='ar'?'طلب تراجع':"Demande d'annulation",
+            (L==='ar'?requester+' يطلب التراجع، هل تقبل؟':requester+' demande à annuler. Acceptez-vous ?'),
+            [{tx:'✅ Oui',c:'btn-p',fn:"OL.channel.publish('undo-accept',{by:OL.role});acceptUndo();closeModal()"},
+             {tx:'❌ Non',c:'btn-d',fn:"OL.channel.publish('undo-refuse',{by:OL.role});refuseUndo();closeModal()"}]
+          );
+        }
+      });
+      ch.subscribe('undo-accept',(msg)=>{
+        if(msg.data.by!==OL.role){ acceptUndo(); closeModal(); }
+      });
+      ch.subscribe('undo-refuse',(msg)=>{
+        if(msg.data.by!==OL.role){ refuseUndo(); closeModal(); }
+      });
+            ch.subscribe('soufla-confirm',(msg)=>{
         if(msg.data.by!==OL.role){
           OL.receiving=true;
           applySouflaClick(msg.data.c,msg.data.r);
@@ -3466,7 +3520,7 @@ if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
     // Service worker inline via blob
     const swCode = `
-      const CACHE = 'dhamiet-v8.8';
+      const CACHE = 'dhamiet-v8.9';
       self.addEventListener('install', e => {
         e.waitUntil(caches.open(CACHE).then(cache => cache.addAll([location.href])));
         self.skipWaiting();
