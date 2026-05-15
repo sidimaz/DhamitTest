@@ -302,7 +302,8 @@ z-index:200;pointer-events:none;text-align:center;max-width:88vw}
 display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr)}
 @media(max-width:600px) and (orientation:portrait){
 .glayout{flex-direction:column}
-.sp{width:100%;flex-direction:row;flex-wrap:wrap;max-height:72px;overflow:hidden;padding:4px 6px}
+.sp{width:100%;flex-direction:row;flex-wrap:wrap;max-height:100px;overflow:hidden;padding:5px 8px;gap:5px}
+.pcard{min-width:140px;flex:1;padding:6px 8px}
 .sttl2,.mhist,.ibox{display:none}.rp{display:none}
 }
 @media(max-width:900px) and (orientation:landscape){
@@ -361,7 +362,7 @@ width:100%;text-align:left;font-family:inherit;transition:background .15s}
       </div>
     </div>
           <button class="mbtn mbtn-dark" onclick="installPWA()" id="btn-pwa" style="display:none"><span>📲 Installer l'application</span></button>
-    <div class="ver">DHAMIÉ v9.0 • Sidimaz</div>
+    <div class="ver">DHAMIÉ v9.1 • Sidimaz</div>
   </div>
 </div>
 
@@ -506,10 +507,10 @@ width:100%;text-align:left;font-family:inherit;transition:background .15s}
         </div>
       </div>
       <!-- Labels BOTTOM (guest view: numbers 1-9, hidden by default) -->
-      <div class="lbltop" id="lbl-bottom" style="display:none;margin-top:2px;margin-bottom:0;direction:rtl">
-        <span></span>
+      <div class="lbltop" id="lbl-bottom" style="display:none;margin-top:2px;margin-bottom:0">
         <span>1</span><span>2</span><span>3</span><span>4</span>
         <span>5</span><span>6</span><span>7</span><span>8</span><span>9</span>
+        <span></span>
       </div>
     </div>
   </div>
@@ -895,8 +896,11 @@ function checkManualSoufla(c,r){
     const cb=document.getElementById('btn-confirmer');
     if(cb) cb.style.display='inline-block';
   } else {
-    // En ligne: envoyer à l'adversaire, ne rien afficher ici sauf toast
-    toast((L==='ar'?'🚨 تم الإرسال — انتظر تأكيد الخصم':'🚨 Réclamation envoyée — attendez la confirmation'),3000);
+    // En ligne: envoyer à l'adversaire avec coords
+    const pieceName = cn({c,r});
+    toast((L==='ar'
+      ?'🚨 مطالبة بالقطعة '+pieceName+' — انتظر تأكيد الخصم'
+      :'🚨 Réclamation pièce '+pieceName+' — attendez la confirmation'),4000);
     if(OL.active&&OL.channel){
       OL.channel.publish('soufla-claim',{
         claimant:G.turn, pieceC:c, pieceR:r, by:OL.role
@@ -2599,28 +2603,19 @@ function updateReclamerButton(){
 
 function reclamerSoufla(){
   if(G.soufla||G.phase!=='play'||G.sfMode||MS.active) return;
-  // Vérifier que c'est bien MON tour (je réclame contre l'adversaire)
   if(G.mode==='online'&&OL.myColor!==G.turn) return;
-  const claimantColor = G.turn;
-  const claimantName = G.turn==='red'?G.p1:G.p2;
   const faultyColor = G.turn==='red'?'green':'red';
-  // Toast chez le réclamant
+  // Inviter à double-taper sur la pièce fautive
   toast((L==='ar'
-    ?'🚨 انقر مرتين على القطعة الخاطئة'
-    :'🚨 Double-tap sur la pièce fautive'),5000);
+    ?'🚨 انقر مرتين على القطعة الخاطئة للمطالبة'
+    :'🚨 Double-tapez sur la pièce fautive pour réclamer'),5000);
   for(let r=0;r<9;r++) for(let c=0;c<9;c++){
     const p=G.board[r][c];
     if(p&&p.t===faultyColor) flashCell(c,r,'rgba(255,140,0,.4)');
   }
-  // Bouton ✅: JAMAIS chez le réclamant
-  // En mode local: visible sur le même écran (adversaire peut confirmer)
-  // En ligne: envoyé à l'adversaire via soufla-claim
-  if(G.mode!=='online'){
-    const cb=document.getElementById('btn-confirmer');
-    if(cb) cb.style.display='inline-block';
-  } else if(OL.active&&OL.channel){
-    OL.channel.publish('soufla-claim',{claimant:claimantColor,by:OL.role});
-  }
+  // En local: le double-tap + checkManualSoufla gérera le bouton ✅
+  // En ligne: checkManualSoufla publiera soufla-claim avec les coords
+  // NE PAS publier soufla-claim ici (pas de coords encore)
 }
 
 function confirmerSoufla(){
@@ -3258,9 +3253,23 @@ function onlineCreate(){
       });
             ch.subscribe('soufla-confirm',(msg)=>{
         if(msg.data.by!==OL.role){
-          OL.receiving=true;
-          applySouflaClick(msg.data.c,msg.data.r);
-          OL.receiving=false;
+          // Le réclamant reçoit la confirmation — appliquer la suppression
+          const c=msg.data.c, r=msg.data.r;
+          const p=G.board[r]&&G.board[r][c];
+          if(p){
+            flashCell(c,r,'rgba(255,60,60,.7)');
+            setTimeout(()=>{
+              if(G.board[r]&&G.board[r][c]) G.board[r][c]=null;
+              // Créditer la capture au réclamant
+              if(MS.claimant==='red') G.capR++; else G.capG++;
+              G.log.push('⚡ Soufla: '+cn({c,r})+' retirée');
+              MS={active:false,claimant:null,pos:null,lastTap:0,lastCell:null};
+              const sfb=document.getElementById('sfb');
+              if(sfb) sfb.style.display='none';
+              toast(L==='ar'?'سوفلة مؤكدة ✓':'Soufla confirmée ✓',2000);
+              renderBoard(); updateUI(); checkOver();
+            },380);
+          }
         }
       });
             ch.subscribe('sync',(msg)=>{
@@ -3385,9 +3394,23 @@ function onlineJoin(){
       });
             ch.subscribe('soufla-confirm',(msg)=>{
         if(msg.data.by!==OL.role){
-          OL.receiving=true;
-          applySouflaClick(msg.data.c,msg.data.r);
-          OL.receiving=false;
+          // Le réclamant reçoit la confirmation — appliquer la suppression
+          const c=msg.data.c, r=msg.data.r;
+          const p=G.board[r]&&G.board[r][c];
+          if(p){
+            flashCell(c,r,'rgba(255,60,60,.7)');
+            setTimeout(()=>{
+              if(G.board[r]&&G.board[r][c]) G.board[r][c]=null;
+              // Créditer la capture au réclamant
+              if(MS.claimant==='red') G.capR++; else G.capG++;
+              G.log.push('⚡ Soufla: '+cn({c,r})+' retirée');
+              MS={active:false,claimant:null,pos:null,lastTap:0,lastCell:null};
+              const sfb=document.getElementById('sfb');
+              if(sfb) sfb.style.display='none';
+              toast(L==='ar'?'سوفلة مؤكدة ✓':'Soufla confirmée ✓',2000);
+              renderBoard(); updateUI(); checkOver();
+            },380);
+          }
         }
       });
       ch.subscribe('sync',(msg)=>{
@@ -3576,7 +3599,7 @@ if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
     // Service worker inline via blob
     const swCode = `
-      const CACHE = 'dhamiet-v9.0';
+      const CACHE = 'dhamiet-v9.1';
       self.addEventListener('install', e => {
         e.waitUntil(caches.open(CACHE).then(cache => cache.addAll([location.href])));
         self.skipWaiting();
