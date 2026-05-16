@@ -303,15 +303,15 @@ z-index:200;pointer-events:none;text-align:center;max-width:88vw}
 display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr)}
 @media(max-width:600px) and (orientation:portrait){
 .glayout{flex-direction:column}
-.sp{width:100%;flex-direction:row;flex-wrap:wrap;max-height:90px;overflow:hidden;padding:4px 8px;gap:4px}
+.sp{width:100%;flex-direction:row;flex-wrap:wrap;max-height:70px;overflow:hidden;padding:4px 8px;gap:4px}
 .pcard{min-width:130px;flex:1;padding:5px 7px}
-.sttl2,.mhist,.ibox,.caps,.ppc{display:none}.rp{display:none}
-#cap1l,#cap2l,#p1cap,#p2cap{display:none}
+.sttl2,.ibox,.caps,.ppc{display:none}.rp{display:none}
+#cap1l,#cap2l,#p1cap,#p2cap,#sfb-wrap{display:none}
 #sfb{font-size:.7rem}
 }
 @media(max-width:900px) and (orientation:landscape){
 .sp{width:120px;font-size:.75rem}
-.mhist{max-height:120px;font-size:.65rem}
+.mhist{max-height:100px;font-size:.63rem;display:block!important}
 .ibox{display:none}.rp{display:none}
 }
 
@@ -365,7 +365,7 @@ width:100%;text-align:left;font-family:inherit;transition:background .15s}
       </div>
     </div>
           <button class="mbtn mbtn-dark" onclick="installPWA()" id="btn-pwa" style="display:none"><span>📲 Installer l'application</span></button>
-    <div class="ver">DHAMIÉ v9.5 • Sidimaz</div>
+    <div class="ver">DHAMIÉ v9.6 • Sidimaz</div>
   </div>
 </div>
 
@@ -2600,9 +2600,11 @@ function updateReclamerButton(){
   // Bouton Réclamer: visible seulement quand soufla OFF, phase play,
   // et c'est MON tour (je peux réclamer contre l'adversaire qui vient de jouer)
   // En ligne: seulement si c'est ma couleur qui doit jouer
-  let canClaim = !G.soufla && G.phase==='play' && !G.over && !G.sfMode;
+  // Je réclame APRÈS le coup de l'adversaire = quand c'est MON tour de jouer
+  // (l'adversaire vient de jouer sans capturer alors qu'il pouvait)
+  let canClaim = !G.soufla && G.phase==='play' && !G.over && !G.sfMode && !(G._sfClaim&&G._sfClaim.active);
   if(G.mode==='online' && canClaim){
-    canClaim = (OL.myColor === G.turn); // Mon tour = je réclame
+    canClaim = (OL.myColor === G.turn); // C'est mon tour = j'aurais pu réclamer après son coup
   }
   btn.style.display = canClaim ? 'inline-block' : 'none';
   // Bouton Confirmer: caché par défaut, visible seulement sur réclamation adverse
@@ -3652,7 +3654,7 @@ if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
     // Service worker inline via blob
     const swCode = `
-      const CACHE = 'dhamiet-v9.5';
+      const CACHE = 'dhamiet-v9.6';
       self.addEventListener('install', e => {
         e.waitUntil(caches.open(CACHE).then(cache => cache.addAll([location.href])));
         self.skipWaiting();
