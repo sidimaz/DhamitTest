@@ -370,7 +370,7 @@ width:100%;text-align:left;font-family:inherit;transition:background .15s}
       </div>
     </div>
           <button class="mbtn mbtn-dark" onclick="installPWA()" id="btn-pwa" style="display:none"><span>📲 Installer l'application</span></button>
-    <div class="ver">DHAMIÉ v9.8 • Sidimaz</div>
+    <div class="ver">DHAMIÉ v9.9 • Sidimaz</div>
   </div>
 </div>
 
@@ -3244,14 +3244,13 @@ function onlineCreate(){
           OL.receiving=false;
         }
       });      ch.subscribe('soufla-claim',(msg)=>{
-        console.log('SOUFLA RECV:', JSON.stringify(msg.data), 'myConnId:', OL.connId, 'pass:', !OL.connId||msg.data.connId!==OL.connId);
         if(!OL.connId||msg.data.connId!==OL.connId){
           const claimantName=msg.data.claimant==='red'?G.p1:G.p2;
           const pieceC=msg.data.pieceC, pieceR=msg.data.pieceR;
           if(pieceC!==undefined){
-            MS.active=true;
-            MS.claimant=msg.data.claimant;
-            MS.pos={c:pieceC,r:pieceR};
+            // Stocker dans G._sfClaimPos pour confirmerSoufla
+            G._sfClaimPos={c:pieceC,r:pieceR};
+            G._sfClaim={active:false, claimant:msg.data.claimant};
             flashCell(pieceC,pieceR,'rgba(255,80,0,.8)');
           }
           const pieceName=pieceC!==undefined?cn({c:pieceC,r:pieceR}):'';
@@ -3406,14 +3405,13 @@ function onlineJoin(){
         }
       });
       ch.subscribe('soufla-claim',(msg)=>{
-        console.log('SOUFLA RECV:', JSON.stringify(msg.data), 'myConnId:', OL.connId, 'pass:', !OL.connId||msg.data.connId!==OL.connId);
         if(!OL.connId||msg.data.connId!==OL.connId){
           const claimantName=msg.data.claimant==='red'?G.p1:G.p2;
           const pieceC=msg.data.pieceC, pieceR=msg.data.pieceR;
           if(pieceC!==undefined){
-            MS.active=true;
-            MS.claimant=msg.data.claimant;
-            MS.pos={c:pieceC,r:pieceR};
+            // Stocker dans G._sfClaimPos pour confirmerSoufla
+            G._sfClaimPos={c:pieceC,r:pieceR};
+            G._sfClaim={active:false, claimant:msg.data.claimant};
             flashCell(pieceC,pieceR,'rgba(255,80,0,.8)');
           }
           const pieceName=pieceC!==undefined?cn({c:pieceC,r:pieceR}):'';
@@ -3661,7 +3659,7 @@ if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
     // Service worker inline via blob
     const swCode = `
-      const CACHE = 'dhamiet-v9.8';
+      const CACHE = 'dhamiet-v9.9';
       self.addEventListener('install', e => {
         e.waitUntil(caches.open(CACHE).then(cache => cache.addAll([location.href])));
         self.skipWaiting();
