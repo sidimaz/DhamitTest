@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guide du Dhamié | ظامِتْ</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#C9933A;--gold-l:#E8B860;--gold-d:#8B6320;
+  --deep:#0E0A02;--dark:#1A1005;--dark2:#241608;
+  --cream:#FAF3E0;--sand:#C9A876;--sand-l:#E8D4A8;
+  --red:#8B1A1A;--accent:#D4A020;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--deep);
+  color:var(--cream);
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.05rem;
+  line-height:1.85;
+  overflow-x:hidden;
+}
+
+/* –– HERO –– */
+.hero{
+min-height:100vh;
+display:flex;flex-direction:column;
+align-items:center;justify-content:center;
+text-align:center;
+padding:40px 20px;
+position:relative;
+background:
+radial-gradient(ellipse at 30% 40%, rgba(201,147,58,.12) 0%, transparent 60%),
+radial-gradient(ellipse at 70% 60%, rgba(139,26,26,.08) 0%, transparent 60%);
+}
+.hero::before{
+content:’’;position:absolute;inset:0;
+background-image:
+repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(201,147,58,.04) 59px, rgba(201,147,58,.04) 60px),
+repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(201,147,58,.04) 59px, rgba(201,147,58,.04) 60px);
+pointer-events:none;
+}
+.hero-arabic{
+font-family:‘Amiri’,serif;
+font-size:clamp(5rem,18vw,10rem);
+color:var(–gold);
+line-height:1;
+text-shadow:0 0 80px rgba(201,147,58,.4),0 0 160px rgba(201,147,58,.2);
+animation:pulse 4s ease-in-out infinite;
+margin-bottom:12px;
+}
+@keyframes pulse{
+0%,100%{text-shadow:0 0 60px rgba(201,147,58,.4),0 0 120px rgba(201,147,58,.2)}
+50%{text-shadow:0 0 100px rgba(201,147,58,.7),0 0 200px rgba(201,147,58,.35)}
+}
+.hero-fr{
+font-family:‘Cormorant Garamond’,serif;
+font-size:clamp(1.4rem,4vw,2.2rem);
+color:var(–sand-l);
+font-style:italic;
+letter-spacing:4px;
+margin-bottom:8px;
+}
+.hero-sub{
+font-size:1rem;
+color:var(–sand);
+letter-spacing:3px;
+text-transform:uppercase;
+margin-bottom:40px;
+}
+.divider-hero{
+width:200px;height:1px;
+background:linear-gradient(90deg,transparent,var(–gold),transparent);
+margin:24px auto;
+}
+.hero-desc{
+max-width:560px;
+font-size:1.1rem;
+color:var(–sand-l);
+line-height:1.9;
+margin-bottom:40px;
+}
+.scroll-hint{
+font-size:.8rem;color:var(–gold);
+letter-spacing:3px;text-transform:uppercase;
+animation:bounce 2s ease-in-out infinite;
+}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+
+/* –– NAV –– */
+.toc{
+position:sticky;top:0;z-index:50;
+background:rgba(14,10,2,.92);
+border-bottom:1px solid rgba(201,147,58,.25);
+padding:10px 20px;
+backdrop-filter:blur(10px);
+display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center;
+}
+.toc a{
+color:var(–sand);font-size:.75rem;letter-spacing:1.5px;
+text-decoration:none;text-transform:uppercase;
+padding:4px 10px;border-radius:20px;
+border:1px solid transparent;
+transition:all .2s;
+font-family:‘Cormorant Garamond’,serif;
+}
+.toc a:hover{color:var(–gold);border-color:rgba(201,147,58,.4)}
+
+/* –– SECTIONS –– */
+.container{max-width:820px;margin:0 auto;padding:0 20px}
+
+section{padding:70px 0 50px}
+section:nth-child(even){
+background:radial-gradient(ellipse at 50% 50%, rgba(201,147,58,.04) 0%, transparent 70%);
+}
+
+.sec-num{
+font-family:‘Amiri’,serif;
+font-size:4rem;color:rgba(201,147,58,.15);
+line-height:1;margin-bottom:-20px;
+display:block;
+}
+.sec-title{
+font-family:‘Amiri’,serif;
+font-size:clamp(1.6rem,4vw,2.4rem);
+color:var(–gold);
+margin-bottom:8px;
+display:flex;align-items:center;gap:14px;
+}
+.sec-title::after{
+content:’’;flex:1;height:1px;
+background:linear-gradient(90deg,rgba(201,147,58,.5),transparent);
+}
+.sec-ar{
+font-family:‘Amiri’,serif;
+font-size:1.1rem;color:var(–sand);
+margin-bottom:28px;
+font-style:italic;
+}
+
+p{margin-bottom:14px;color:var(–sand-l)}
+p:last-child{margin-bottom:0}
+
+.term{color:var(–gold);font-weight:700;font-style:italic}
+.term-ar{font-family:‘Amiri’,serif;color:var(–gold-l)}
+
+/* –– CARDS –– */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:24px 0}
+.card{
+background:rgba(255,255,255,.03);
+border:1px solid rgba(201,147,58,.2);
+border-radius:12px;padding:20px;
+transition:all .25s;
+}
+.card:hover{border-color:rgba(201,147,58,.5);background:rgba(201,147,58,.05);transform:translateY(-2px)}
+.card-icon{font-size:2rem;margin-bottom:10px;display:block}
+.card-title{font-family:‘Amiri’,serif;color:var(–gold);font-size:1.15rem;margin-bottom:6px}
+.card-text{font-size:.9rem;color:var(–sand);line-height:1.7}
+
+/* –– RULES LIST –– */
+.rules-list{list-style:none;margin:20px 0}
+.rules-list li{
+padding:12px 16px;
+border-left:3px solid var(–gold-d);
+background:rgba(255,255,255,.02);
+margin-bottom:8px;
+border-radius:0 8px 8px 0;
+font-size:.95rem;color:var(–sand-l);
+transition:all .2s;
+}
+.rules-list li:hover{border-left-color:var(–gold);background:rgba(201,147,58,.06)}
+.rules-list li strong{color:var(–gold-l)}
+
+/* –– SOUFLA SPECIAL –– */
+.soufla-box{
+background:linear-gradient(135deg,rgba(139,26,26,.2),rgba(201,147,58,.1));
+border:1.5px solid rgba(201,147,58,.35);
+border-radius:14px;padding:28px;margin:24px 0;
+position:relative;overflow:hidden;
+}
+.soufla-box::before{
+content:‘⚡’;
+position:absolute;right:20px;top:10px;
+font-size:5rem;opacity:.08;
+}
+.soufla-title{
+font-family:‘Amiri’,serif;
+font-size:1.5rem;color:var(–gold);
+margin-bottom:14px;
+}
+.soufla-mode{
+margin:16px 0;padding:14px;
+background:rgba(0,0,0,.3);border-radius:8px;
+}
+.soufla-mode-title{
+font-size:.8rem;letter-spacing:2px;text-transform:uppercase;
+color:var(–gold);margin-bottom:8px;
+}
+.step{
+display:flex;gap:12px;align-items:flex-start;
+margin:8px 0;font-size:.92rem;color:var(–sand-l);
+}
+.step-num{
+width:22px;height:22px;border-radius:50%;
+background:var(–gold-d);color:#000;
+display:flex;align-items:center;justify-content:center;
+font-size:.72rem;font-weight:700;flex-shrink:0;margin-top:2px;
+}
+
+/* –– STRATEGY –– */
+.strategy-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:20px 0}
+.strat-card{
+padding:16px;border-radius:10px;
+background:rgba(255,255,255,.03);
+border:1px solid rgba(201,147,58,.15);
+text-align:center;
+}
+.strat-icon{font-size:1.8rem;display:block;margin-bottom:8px}
+.strat-title{font-family:‘Amiri’,serif;color:var(–gold-l);font-size:1rem;margin-bottom:6px}
+.strat-text{font-size:.82rem;color:var(–sand);line-height:1.6}
+
+/* –– BOARD DIAGRAM –– */
+.board-demo{
+display:inline-grid;
+grid-template-columns:repeat(9,1fr);
+gap:2px;
+background:rgba(212,176,122,.15);
+border:1px solid rgba(201,147,58,.3);
+border-radius:8px;
+padding:8px;
+margin:20px auto;
+}
+.bd-cell{
+width:28px;height:28px;
+display:flex;align-items:center;justify-content:center;
+font-size:.6rem;
+border-radius:3px;
+}
+.bd-red{background:rgba(201,147,58,.3);color:var(–gold)}
+.bd-green{background:rgba(60,100,60,.3);color:#7CCC7C}
+.bd-center{background:rgba(201,147,58,.5);border:1px solid var(–gold)}
+.bd-empty{background:rgba(255,255,255,.03)}
+
+/* –– FOOTER –– */
+footer{
+text-align:center;padding:50px 20px;
+border-top:1px solid rgba(201,147,58,.15);
+background:rgba(0,0,0,.3);
+}
+.footer-title{font-family:‘Amiri’,serif;font-size:2rem;color:var(–gold);margin-bottom:8px}
+.footer-sub{color:var(–sand);font-size:.85rem;letter-spacing:2px}
+
+/* –– HIGHLIGHT BOX –– */
+.highlight{
+background:rgba(201,147,58,.08);
+border:1px solid rgba(201,147,58,.3);
+border-radius:10px;padding:18px 22px;
+margin:20px 0;color:var(–sand-l);
+font-size:.95rem;
+}
+.highlight strong{color:var(–gold-l)}
+
+@media(max-width:600px){
+.hero-arabic{font-size:clamp(4rem,20vw,7rem)}
+section{padding:50px 0 35px}
+.sec-title{font-size:1.5rem}
+.toc{gap:4px}
+.toc a{font-size:.68rem;padding:3px 8px}
+}
+</style>
+
+</head>
+<body>
+
+<!-- HERO -->
+
+<div class="hero">
+  <div class="hero-arabic">ظامِتْ</div>
+  <div class="hero-fr">Dhamié</div>
+  <div class="hero-sub">Le jeu traditionnel mauritanien</div>
+  <div class="divider-hero"></div>
+  <div class="hero-desc">
+    Un jeu de stratégie ancestral joué sur le sable du désert mauritanien, 
+    avec des bâtons dorés et des crottes de chameau séchées comme pièces. 
+    Ce guide vous accompagne de vos premiers pas jusqu'à la maîtrise du jeu.
+  </div>
+  <div class="scroll-hint">↓ Découvrir le jeu ↓</div>
+</div>
+
+<!-- NAV -->
+
+<nav class="toc">
+  <a href="#histoire">Histoire</a>
+  <a href="#plateau">Plateau</a>
+  <a href="#pieces">Pièces</a>
+  <a href="#werde">Werde</a>
+  <a href="#deplacement">Déplacement</a>
+  <a href="#captures">Captures</a>
+  <a href="#soufla">Soufla</a>
+  <a href="#sultan">Sultan</a>
+  <a href="#fin">Fin</a>
+  <a href="#strategie">Stratégie</a>
+</nav>
+
+<!-- 1. HISTOIRE -->
+
+<section id="histoire">
+<div class="container">
+  <span class="sec-num">١</span>
+  <h2 class="sec-title">Histoire & Origines</h2>
+  <div class="sec-ar">التاريخ والأصول</div>
+  <p>
+    Le <span class="term">Dhamié</span> est un jeu de stratégie profondément enraciné dans la culture mauritanienne. 
+    Transmis de génération en génération, il se jouait traditionnellement à même le sable du désert, 
+    les joueurs traçant la grille à la main et utilisant ce qu'ils avaient à portée comme pièces :
+    des <span class="term">bâtons dorés</span> (batons) et des <span class="term">crottes de chameau séchées</span> (crottes).
+  </p>
+  <p>
+    Aujourd'hui encore, le Dhamié est un symbole de convivialité et de rigueur intellectuelle en Mauritanie. 
+    Il requiert mémoire, anticipation et sang-froid — des qualités que les nomades du Sahara cultivaient 
+    lors des longues soirées sous les étoiles.
+  </p>
+  <div class="highlight">
+    <strong>Le nom :</strong> "ظامِتْ" (Dhamié/Dhamit) vient du mot arabe désignant quelque chose 
+    de "discret" ou "silencieux" — comme la concentration profonde qu'exige le jeu.
+  </div>
+</div>
+</section>
+
+<!-- 2. PLATEAU -->
+
+<section id="plateau">
+<div class="container">
+  <span class="sec-num">٢</span>
+  <h2 class="sec-title">Le Plateau</h2>
+  <div class="sec-ar">رقعة اللعب</div>
+  <p>
+    Le plateau est une grille de <span class="term">9 × 9 lignes</span>, soit 81 intersections. 
+    Les pièces se placent sur les <strong>intersections</strong> (points de croisement des lignes), 
+    pas dans les cases.
+  </p>
+  <div class="cards">
+    <div class="card">
+      <span class="card-icon">🔢</span>
+      <div class="card-title">Colonnes (1-9)</div>
+      <div class="card-text">Numérotées de 1 (gauche) à 9 (droite) — repère horizontal</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🔤</span>
+      <div class="card-title">Lignes (A-I)</div>
+      <div class="card-text">Lettrées de A (haut) à I (bas) — repère vertical</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">✦</span>
+      <div class="card-title">Morada (E5)</div>
+      <div class="card-text">Centre du plateau — intersection E5, marquée de croix. Point de départ de la Werde</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">⬛</span>
+      <div class="card-title">Cases diagonales</div>
+      <div class="card-text">Les intersections dont la somme ligne+colonne est paire permettent les mouvements diagonaux</div>
+    </div>
+  </div>
+  <div class="highlight">
+    <strong>Coins (Karn) :</strong> A1, A9, I1, I9 — les quatre coins sont des positions stratégiques 
+    très importantes. Une pièce dans un coin est difficile à capturer et constitue une excellente base défensive.
+  </div>
+</div>
+</section>
+
+<!-- 3. PIÈCES -->
+
+<section id="pieces">
+<div class="container">
+  <span class="sec-num">٣</span>
+  <h2 class="sec-title">Les Pièces</h2>
+  <div class="sec-ar">القطع</div>
+  <p>Chaque joueur dispose de <span class="term">40 pièces</span> au départ.</p>
+  <div class="cards">
+    <div class="card">
+      <span class="card-icon">🪄</span>
+      <div class="card-title">Kalb — الكلب (Soldat)</div>
+      <div class="card-text">
+        La pièce de base. Se déplace vers l'avant (ou en diagonal avant sur cases diagonales). 
+        Capture dans <strong>toutes les directions</strong>. 
+        Représenté par un bâton doré dans la tradition.
+      </div>
+    </div>
+    <div class="card">
+      <span class="card-icon">⭐</span>
+      <div class="card-title">الظائم (Sultan)</div>
+      <div class="card-text">
+        Le Kalb promu en atteignant la dernière ligne adverse. 
+        Se déplace et capture à <strong>longue distance</strong> dans toutes les directions, 
+        comme une dame aux échecs.
+      </div>
+    </div>
+  </div>
+  <p>
+    <span class="term">Disposition initiale :</span> les 40 pièces de chaque joueur occupent les 
+    4 premières rangées de leur côté, plus les cases de leur côté sur la rangée centrale (E).
+    La case E5 (Morada) reste vide au départ.
+  </p>
+</div>
+</section>
+
+<!-- 4. WERDE -->
+
+<section id="werde">
+<div class="container">
+  <span class="sec-num">٤</span>
+  <h2 class="sec-title">La Werde — Premier Coup</h2>
+  <div class="sec-ar">الوردة</div>
+  <p>
+    La <span class="term">Werde</span> (<span class="term-ar">الوردة</span>) est le premier coup obligatoire 
+    qui ouvre la partie. Elle consiste à avancer une pièce vers le centre <strong>E5 (Morada)</strong>.
+  </p>
+  <div class="cards">
+    <div class="card">
+      <span class="card-icon">🪄</span>
+      <div class="card-title">Bâtons dorés (bas)</div>
+      <div class="card-text">Avancent la pièce en <strong>F4 → E5</strong></div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🫘</span>
+      <div class="card-title">Crottes noires (haut)</div>
+      <div class="card-text">Avancent la pièce en <strong>D6 → E5</strong></div>
+    </div>
+  </div>
+  <div class="highlight">
+    <strong>Important :</strong> seule la pièce désignée peut faire la Werde. 
+    Après la Werde, la phase <span class="term">Atkatila</span> (jeu libre) commence.
+  </div>
+</div>
+</section>
+
+<!-- 5. DEPLACEMENT -->
+
+<section id="deplacement">
+<div class="container">
+  <span class="sec-num">٥</span>
+  <h2 class="sec-title">Déplacement</h2>
+  <div class="sec-ar">الحركة</div>
+
+  <h3 style="color:var(--gold-l);margin-bottom:10px">Kalb (soldat)</h3>
+  <ul class="rules-list">
+    <li><strong>Direction :</strong> uniquement vers l'avant (vers le camp adverse), d'une intersection à la fois</li>
+    <li><strong>Diagonal :</strong> sur les intersections diagonales, peut aussi avancer en diagonale avant</li>
+    <li><strong>Restriction :</strong> ne peut pas reculer ni se déplacer latéralement (sauf lors d'une capture)</li>
+  </ul>
+
+  <h3 style="color:var(--gold-l);margin:20px 0 10px">الظائم (Sultan)</h3>
+  <ul class="rules-list">
+    <li><strong>Directions :</strong> avant, arrière, latéral ET diagonal — dans toutes les directions</li>
+    <li><strong>Distance :</strong> peut parcourir plusieurs intersections en un seul coup</li>
+    <li><strong>Puissance :</strong> s'arrête avant une pièce alliée, capture à distance par-dessus une pièce adverse</li>
+  </ul>
+</div>
+</section>
+
+<!-- 6. CAPTURES -->
+
+<section id="captures">
+<div class="container">
+  <span class="sec-num">٦</span>
+  <h2 class="sec-title">Captures & Chaînes</h2>
+  <div class="sec-ar">القتل والسلسلة</div>
+
+  <p>
+    La <span class="term">capture</span> (ou "kill") est le cœur stratégique du Dhamié. 
+    Une pièce capture une pièce adverse en sautant par-dessus elle — 
+    la case d'atterrissage doit être libre.
+  </p>
+
+  <ul class="rules-list">
+    <li><strong>Kalb :</strong> capture dans toutes les directions (avant, arrière, latéral, diagonal si case diagonale), d'une intersection de saut</li>
+    <li><strong>Sultan :</strong> capture à distance — peut sauter par-dessus une pièce adverse et atterrir plusieurs cases plus loin</li>
+    <li><strong>Capture obligatoire :</strong> si une capture est possible, elle doit être effectuée</li>
+    <li><strong>Maximum obligatoire :</strong> si plusieurs captures sont possibles, il faut choisir la séquence qui capture le plus de pièces</li>
+  </ul>
+
+  <div class="soufla-box" style="border-color:rgba(100,200,100,.3);background:rgba(60,100,60,.1)">
+    <div class="soufla-title" style="color:#7CCC7C">⛓ Chaîne de captures</div>
+    <p style="color:var(--sand-l)">
+      Après une capture, si la pièce peut encore capturer depuis sa nouvelle position, 
+      elle <strong>doit continuer</strong> la chaîne. Le tour ne change pas tant que des captures restent possibles.
+      Un timer de <strong>20 secondes</strong> s'applique entre chaque capture de la chaîne.
+    </p>
+  </div>
+</div>
+</section>
+
+<!-- 7. SOUFLA -->
+
+<section id="soufla">
+<div class="container">
+  <span class="sec-num">٧</span>
+  <h2 class="sec-title">La Soufla ⚡</h2>
+  <div class="sec-ar">السوفلة</div>
+
+  <p>
+    La <span class="term">Soufla</span> est une règle de pénalité : si un joueur ne capture pas 
+    alors qu'il le pouvait (ou capture moins que le maximum possible), 
+    l'adversaire peut réclamer et retirer une de ses pièces fautives.
+  </p>
+
+  <!-- Mode AUTO -->
+
+  <div class="soufla-box">
+    <div class="soufla-title">⚡ Mode Automatique (Soufla ON)</div>
+    <p style="color:var(--sand-l);margin-bottom:14px">
+      Le système détecte automatiquement les infractions et retire la pièce fautive sans intervention des joueurs.
+    </p>
+    <div class="highlight" style="margin:0">
+      <strong>Activation :</strong> bouton ⚡ Soufla allumé (orange) — mode par défaut au démarrage
+    </div>
+  </div>
+
+  <!-- Mode MANUEL LOCAL -->
+
+  <div class="soufla-box">
+    <div class="soufla-title">🚨 Mode Manuel — Jeu Local (2 joueurs, même écran)</div>
+    <p style="color:var(--sand-l);margin-bottom:14px">
+      Les joueurs surveillent eux-mêmes. La vigilance fait partie du jeu !
+    </p>
+    <div class="soufla-mode">
+      <div class="soufla-mode-title">Procédure de réclamation</div>
+      <div class="step"><span class="step-num">1</span>
+        <span>Désactiver la Soufla auto (bouton ⚡ → "Soufla désactivée")</span>
+      </div>
+      <div class="step"><span class="step-num">2</span>
+        <span>L'adversaire joue sans capturer alors qu'il le pouvait</span>
+      </div>
+      <div class="step"><span class="step-num">3</span>
+        <span>Appuyer sur 🚨 — les pièces fautives s'illuminent en orange</span>
+      </div>
+      <div class="step"><span class="step-num">4</span>
+        <span>Taper sur la pièce fautive de l'adversaire</span>
+      </div>
+      <div class="step"><span class="step-num">5</span>
+        <span>Appuyer sur ✅ pour confirmer le retrait</span>
+      </div>
+      <div class="step"><span class="step-num">6</span>
+        <span>La pièce est retirée — <strong>une seule pièce par réclamation</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mode MANUEL EN LIGNE -->
+
+  <div class="soufla-box">
+    <div class="soufla-title">🌐 Mode Manuel — Jeu en Ligne (2 appareils)</div>
+    <p style="color:var(--sand-l);margin-bottom:14px">
+      Même logique mais synchronisée entre les deux appareils.
+    </p>
+    <div class="soufla-mode">
+      <div class="soufla-mode-title">Procédure — Joueur A réclame contre Joueur B</div>
+      <div class="step"><span class="step-num">1</span>
+        <span><strong>Chez A :</strong> désactiver Soufla — se synchronise automatiquement chez B</span>
+      </div>
+      <div class="step"><span class="step-num">2</span>
+        <span><strong>B joue</strong> un coup sans capturer alors qu'il le pouvait</span>
+      </div>
+      <div class="step"><span class="step-num">3</span>
+        <span><strong>Chez A :</strong> le bouton 🚨 apparaît (c'est maintenant le tour de A)</span>
+      </div>
+      <div class="step"><span class="step-num">4</span>
+        <span><strong>A appuie sur 🚨</strong> → les pièces de B s'illuminent</span>
+      </div>
+      <div class="step"><span class="step-num">5</span>
+        <span><strong>A tape sur la pièce fautive</strong> → toast "Réclamation envoyée"</span>
+      </div>
+      <div class="step"><span class="step-num">6</span>
+        <span><strong>Chez B :</strong> message "A réclame la pièce D2 — Appuyez ✅" + vibration</span>
+      </div>
+      <div class="step"><span class="step-num">7</span>
+        <span><strong>B appuie sur ✅</strong> → pièce retirée sur les deux écrans simultanément</span>
+      </div>
+    </div>
+    <div class="highlight" style="margin-top:14px;margin-bottom:0">
+      <strong>Règle importante :</strong> seul l'adversaire du réclamant peut confirmer (✅). 
+      Le réclamant ne voit pas le bouton ✅ — il attend la confirmation de B.
+    </div>
+  </div>
+
+  <div class="highlight">
+    <strong>Règle de la Soufla :</strong> une pièce qui ne pouvait pas capturer AVANT le coup 
+    ne peut jamais être réclamée, même si elle peut capturer APRÈS (conséquence du coup adverse). 
+    La soufla s'évalue uniquement sur la situation AVANT que le joueur joue.
+  </div>
+</div>
+</section>
+
+<!-- 8. SULTAN -->
+
+<section id="sultan">
+<div class="container">
+  <span class="sec-num">٨</span>
+  <h2 class="sec-title">Le Sultan ★</h2>
+  <div class="sec-ar">الظائم</div>
+
+  <p>
+    Quand un <span class="term">Kalb</span> atteint la <strong>dernière ligne adverse</strong> 
+    (ligne A pour les bâtons, ligne I pour les crottes), il est promu en 
+    <span class="term">الظائم (Sultan)</span>, marqué d'une étoile ★.
+  </p>
+
+  <ul class="rules-list">
+    <li><strong>Promotion immédiate :</strong> dès qu'il s'arrête sur la dernière ligne — le tour s'arrête obligatoirement</li>
+    <li><strong>En chaîne :</strong> si un Kalb traverse la dernière ligne pendant une chaîne, il peut continuer à capturer comme Kalb (mitoyenne), et devient Sultan à l'arrêt</li>
+    <li><strong>Pouvoirs :</strong> actifs dès le tour suivant — déplacement et capture à distance dans toutes les directions</li>
+    <li><strong>Stratégie :</strong> un Sultan dans un coin (Karn) est particulièrement puissant et difficile à éliminer</li>
+  </ul>
+
+  <div class="highlight">
+    <strong>Koud (Nul) :</strong> si les deux joueurs n'ont plus que des Sultans et qu'aucune capture n'est possible, 
+    la partie est déclarée nulle — <span class="term-ar">الكود</span>.
+  </div>
+</div>
+</section>
+
+<!-- 9. FIN DE PARTIE -->
+
+<section id="fin">
+<div class="container">
+  <span class="sec-num">٩</span>
+  <h2 class="sec-title">Fin de Partie</h2>
+  <div class="sec-ar">نهاية اللعبة</div>
+
+  <div class="cards">
+    <div class="card">
+      <span class="card-icon">🏆</span>
+      <div class="card-title">Victoire</div>
+      <div class="card-text">
+        Éliminer toutes les pièces adverses, 
+        OR bloquer l'adversaire (toutes ses pièces sont immobiles et ne peuvent ni avancer ni capturer)
+      </div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🤝</span>
+      <div class="card-title">Koud (Nul)</div>
+      <div class="card-text">
+        Sultan contre Sultan — si aucun camp ne peut éliminer l'autre, 
+        la partie se termine en match nul <span class="term-ar">الكود</span>
+      </div>
+    </div>
+    <div class="card">
+      <span class="card-icon">⏱️</span>
+      <div class="card-title">Victoire au temps</div>
+      <div class="card-text">
+        Si un timer est activé et qu'un joueur dépasse son temps, 
+        l'adversaire remporte la partie
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- 10. STRATÉGIE -->
+
+<section id="strategie">
+<div class="container">
+  <span class="sec-num">١٠</span>
+  <h2 class="sec-title">Conseils Stratégiques</h2>
+  <div class="sec-ar">الاستراتيجية</div>
+
+  <div class="strategy-grid">
+    <div class="strat-card">
+      <span class="strat-icon">⬛</span>
+      <div class="strat-title">Maîtrisez les coins</div>
+      <div class="strat-text">Un Karn (coin) est la position la plus sûre. Ne quittez jamais un coin sans raison — une pièce en coin est presque invulnérable</div>
+    </div>
+    <div class="strat-card">
+      <span class="strat-icon">⛓</span>
+      <div class="strat-title">Préparez les chaînes</div>
+      <div class="strat-text">Positionner vos pièces pour créer des chaînes de 3-5 captures est la clé de la victoire. Anticipez 3 coups à l'avance</div>
+    </div>
+    <div class="strat-card">
+      <span class="strat-icon">⭐</span>
+      <div class="strat-title">Promouvez vite</div>
+      <div class="strat-text">Un Sultan change l'équilibre du jeu. Faites avancer une pièce sur le flanc vers la promotion dès le début</div>
+    </div>
+    <div class="strat-card">
+      <span class="strat-icon">🛡️</span>
+      <div class="strat-title">Couvrez-vous</div>
+      <div class="strat-text">Gardez vos pièces groupées. Une pièce isolée est vulnérable à la capture et ne peut pas participer aux chaînes défensives</div>
+    </div>
+    <div class="strat-card">
+      <span class="strat-icon">👁️</span>
+      <div class="strat-title">Soufla vigilance</div>
+      <div class="strat-text">En mode manuel, surveillez toujours si l'adversaire pouvait capturer. La vigilance est une arme aussi puissante que la stratégie</div>
+    </div>
+    <div class="strat-card">
+      <span class="strat-icon">⚖️</span>
+      <div class="strat-title">Maximum obligatoire</div>
+      <div class="strat-text">Choisissez toujours la séquence de capture maximale. Négliger une capture supplémentaire expose à la Soufla</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- FOOTER -->
+
+<footer>
+  <div class="footer-title">ظامِتْ</div>
+  <div class="footer-sub">Dhamié v1.0 • Guide officiel • Sidimaz</div>
+  <div style="margin-top:20px;font-size:.8rem;color:rgba(255,255,255,.2)">
+    Un jeu. Une tradition. Une passion.
+  </div>
+</footer>
+
+</body>
+</html>
