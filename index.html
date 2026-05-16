@@ -370,7 +370,7 @@ width:100%;text-align:left;font-family:inherit;transition:background .15s}
       </div>
     </div>
           <button class="mbtn mbtn-dark" onclick="installPWA()" id="btn-pwa" style="display:none"><span>📲 Installer l'application</span></button>
-    <div class="ver">DHAMIÉ v9.7 • Sidimaz</div>
+    <div class="ver">DHAMIÉ v9.7b • Sidimaz</div>
   </div>
 </div>
 
@@ -2621,7 +2621,9 @@ function handleClaimTap(c,r){
   if(!G._sfClaim||!G._sfClaim.active) return false;
   const p=G.board[r][c];
   // Doit être une pièce adverse
-  const faultyColor=G._sfClaim.claimant==='red'?'green':'red';
+  // Pièces fautives = pièces adverses du réclamant
+  const myColor = G.mode==='online' ? OL.myColor : G._sfClaim.claimant;
+  const faultyColor = myColor==='red' ? 'green' : 'red';
   if(!p||p.t!==faultyColor) return false;
 
   const pieceName=cn({c,r});
@@ -2666,8 +2668,6 @@ function handleClaimTap(c,r){
 
 function reclamerSoufla(){
   if(G.soufla||G.phase!=='play'||G.sfMode) return;
-  // En ligne: réclamer seulement quand c'est le tour adverse
-  if(G.mode==='online'&&OL.myColor===G.turn) return;
   // Activer le mode réclamation
   // claimant = MOI (celui qui réclame)
   const myColor = G.mode==='online' ? OL.myColor : G.turn;
@@ -3661,7 +3661,7 @@ if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
     // Service worker inline via blob
     const swCode = `
-      const CACHE = 'dhamiet-v9.7';
+      const CACHE = 'dhamiet-v9.7b';
       self.addEventListener('install', e => {
         e.waitUntil(caches.open(CACHE).then(cache => cache.addAll([location.href])));
         self.skipWaiting();
