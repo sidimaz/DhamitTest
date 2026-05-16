@@ -365,7 +365,7 @@ width:100%;text-align:left;font-family:inherit;transition:background .15s}
       </div>
     </div>
           <button class="mbtn mbtn-dark" onclick="installPWA()" id="btn-pwa" style="display:none"><span>📲 Installer l'application</span></button>
-    <div class="ver">DHAMIÉ v9.4dd • Sidimaz</div>
+    <div class="ver">DHAMIÉ v9.5 • Sidimaz</div>
   </div>
 </div>
 
@@ -909,7 +909,7 @@ function checkManualSoufla(c,r){
       :'🚨 Réclamation pièce '+pieceName+' — attendez la confirmation'),4000);
     if(OL.active&&OL.channel){
       const msg={claimant:G.turn, pieceC:c, pieceR:r, connId:OL.connId};
-      toast('📤 ENVOI connId='+(OL.connId||'?'), 3000);
+      console.log('SOUFLA PUBLISH:', JSON.stringify(msg), 'myConnId:', OL.connId);
       OL.channel.publish('soufla-claim', msg);
     }
   }
@@ -1045,6 +1045,7 @@ function startGame(){
     p1:nameRed, p2:nameGreen, mode:gmode, aiLv:ail,
     over:false, lastMove:null,
     soufla:sofOn, sfMode:false, sfOff:null, sfTgt:[],
+    _sfClaim:{active:false}, _sfClaimPos:null,
     tpp:tmin*60, timers:{red:tmin*60,green:tmin*60}, mc:0,
     p1Color:p1Color, startTime:Date.now(),
   };
@@ -1258,11 +1259,14 @@ function updCap(id,count,type){
 function onCell(c,r){
   if(G.over) return;
   let fc=c, fr=r;
-  // Confirmer coin (soufla manuelle locale)
-  if(MS.active&&checkManualSouflaCorner(fc,fr)) return;
-  if(MS.active&&G.mode==='local'){
-    MS={active:false,claimant:null,pos:null,lastTap:0,lastCell:null};
-    document.getElementById("sfb").style.display="none";
+  // Mode réclamation actif: tap sur pièce adverse
+  if(G._sfClaim&&G._sfClaim.active){
+    if(handleClaimTap(fc,fr)) return;
+    // Tap ailleurs = annuler réclamation
+    G._sfClaim={active:false};
+    const sfb=document.getElementById('sfb');
+    if(sfb) sfb.style.display='none';
+    return;
   }
   if(G.sfMode){
     if(G.mode==='ai'&&G.turn==='green') return;
@@ -1271,12 +1275,8 @@ function onCell(c,r){
   }
   if(G.mode==='ai'&&G.turn==='green') return;
   if(G.mode==='online'&&G.turn!==OL.myColor){
-    // En ligne hors tour: double-tap pour réclamation seulement
-    if(checkManualSoufla(fc,fr)) return;
     toast(L==='ar'?'انتظر دور خصمك':'Attendez votre tour',1200); return;
   }
-  // Double-tap = réclamer soufla (local: mon tour aussi)
-  if(checkManualSoufla(fc,fr)) return;
   if(G.phase==='atk') handleWerde(fc,fr);
   else handlePlay(fc,fr);
 }
@@ -2606,46 +2606,120 @@ function updateReclamerButton(){
   }
   btn.style.display = canClaim ? 'inline-block' : 'none';
   // Bouton Confirmer: caché par défaut, visible seulement sur réclamation adverse
-  if(btnC && !MS.active) btnC.style.display='none';
+  if(btnC && !(G._sfClaimPos)) btnC.style.display='none';
+}
+
+// Gestion du tap sur pièce fautive après réclamation 🚨
+function handleClaimTap(c,r){
+  if(!G._sfClaim||!G._sfClaim.active) return false;
+  const p=G.board[r][c];
+  // Doit être une pièce adverse
+  const faultyColor=G._sfClaim.claimant==='red'?'green':'red';
+  if(!p||p.t!==faultyColor) return false;
+
+  const pieceName=cn({c,r});
+  const claimantName=G._sfClaim.claimant==='red'?G.p1:G.p2;
+
+  if(G.mode==='local'){
+    // Local: afficher sfb + bouton ✅ immédiatement
+    G._sfClaimPos={c,r};
+    const sfb=document.getElementById('sfb');
+    if(sfb){
+      sfb.textContent=(L==='ar'
+        ?'🚨 '+claimantName+' يطالب بالقطعة '+pieceName+' — اضغط ✅ للتأكيد'
+        :'🚨 '+claimantName+' réclame la pièce '+pieceName+' — Appuyez ✅');
+      sfb.style.display='block';
+    }
+    const cb=document.getElementById('btn-confirmer');
+    if(cb) cb.style.display='inline-block';
+    flashCell(c,r,'rgba(255,80,0,.8)');
+  } else if(G.mode==='online'){
+    // En ligne: envoyer à l'adversaire
+    toast((L==='ar'
+      ?'🚨 مطالبة بالقطعة '+pieceName+' — انتظر تأكيد الخصم'
+      :'🚨 Réclamation pièce '+pieceName+' — attendez la confirmation'),4000);
+    flashCell(c,r,'rgba(255,80,0,.8)');
+    G._sfClaimPos={c,r};
+    if(OL.active&&OL.channel){
+      OL.channel.publish('soufla-claim',{
+        claimant:G._sfClaim.claimant,
+        pieceC:c, pieceR:r,
+        claimantName,
+        pieceName,
+        connId:OL.connId
+      });
+    }
+    // Désactiver mode réclamation chez A
+    G._sfClaim={active:false};
+    const sfb=document.getElementById('sfb');
+    if(sfb) sfb.style.display='none';
+  }
+  return true;
 }
 
 function reclamerSoufla(){
-  if(G.soufla||G.phase!=='play'||G.sfMode||MS.active) return;
-  if(G.mode==='online'&&OL.myColor===G.turn) return; // Je réclame quand c'est le tour adverse
-  const faultyColor = G.turn==='red'?'green':'red';
-  // Inviter à double-taper sur la pièce fautive
-  toast((L==='ar'
-    ?'🚨 انقر مرتين على القطعة الخاطئة للمطالبة'
-    :'🚨 Double-tapez sur la pièce fautive pour réclamer'),5000);
+  if(G.soufla||G.phase!=='play'||G.sfMode) return;
+  // En ligne: réclamer seulement quand c'est le tour adverse
+  if(G.mode==='online'&&OL.myColor===G.turn) return;
+  // Activer le mode réclamation
+  G._sfClaim={active:true, claimant:G.turn};
+  const faultyColor=G.turn==='red'?'green':'red';
+  // Mettre en évidence les pièces adverses
   for(let r=0;r<9;r++) for(let c=0;c<9;c++){
     const p=G.board[r][c];
-    if(p&&p.t===faultyColor) flashCell(c,r,'rgba(255,140,0,.4)');
+    if(p&&p.t===faultyColor) flashCell(c,r,'rgba(255,140,0,.5)');
   }
-  // En local: le double-tap + checkManualSoufla gérera le bouton ✅
-  // En ligne: checkManualSoufla publiera soufla-claim avec les coords
-  // NE PAS publier soufla-claim ici (pas de coords encore)
+  // Message: taper sur la pièce fautive
+  const sfb=document.getElementById('sfb');
+  if(sfb){
+    sfb.textContent=L==='ar'
+      ?'🚨 انقر على القطعة الخاطئة'
+      :'🚨 Tapez sur la pièce fautive';
+    sfb.style.display='block';
+  }
+  toast(L==='ar'?'🚨 انقر على القطعة الخاطئة':'🚨 Tapez sur la pièce fautive',4000);
 }
 
 function confirmerSoufla(){
-  if(!MS.active||!MS.pos) return;
-  // En ligne: seul l'adversaire du réclamant peut confirmer
+  const pos = G._sfClaimPos || (G._sfClaim&&G._sfClaim.active?null:null);
+  if(!pos) return;
   if(G.mode==='online'){
-    if(OL.myColor===MS.claimant){
-      toast(L==='ar'?'فقط الخصم يمكنه التأكيد':'Seul votre adversaire peut confirmer',2000);
-      return;
-    }
     // Appliquer localement et notifier le réclamant
-    applySouflaClick(MS.pos.c,MS.pos.r);
-    if(OL.channel) OL.channel.publish('soufla-confirm',{c:MS.pos.c,r:MS.pos.r,connId:OL.connId});
-    // Cacher sfb et bouton
+    G.board[pos.r][pos.c]=null;
+    // Créditer la capture
+    const claimant=G._sfClaim&&G._sfClaim.claimant ? G._sfClaim.claimant :
+      (OL.myColor==='red'?'green':'red');
+    if(claimant==='red') G.capR++; else G.capG++;
+    G.log.push('⚡ Soufla: '+cn(pos)+' retirée');
+    flashCell(pos.c,pos.r,'rgba(255,60,60,.7)');
+    if(OL.channel) OL.channel.publish('soufla-confirm',{c:pos.c,r:pos.r,connId:OL.connId});
     const sfb=document.getElementById('sfb');
     if(sfb) sfb.style.display='none';
     const cb=document.getElementById('btn-confirmer');
     if(cb) cb.style.display='none';
-    MS={active:false,claimant:null,pos:null,lastTap:0,lastCell:null};
+    G._sfClaimPos=null;
+    G._sfClaim={active:false};
+    toast(L==='ar'?'سوفلة مؤكدة ✓':'Soufla confirmée ✓',2000);
+    setTimeout(()=>{ renderBoard(); updateUI(); checkOver(); },400);
     return;
   }
-  confirmManualSoufla();
+  // Local
+  if(!G._sfClaimPos) return;
+  const p=G.board[G._sfClaimPos.r][G._sfClaimPos.c];
+  if(p){
+    G.board[G._sfClaimPos.r][G._sfClaimPos.c]=null;
+    if(G._sfClaim&&G._sfClaim.claimant==='red') G.capR++; else G.capG++;
+    G.log.push('⚡ Soufla: '+cn(G._sfClaimPos)+' retirée');
+    flashCell(G._sfClaimPos.c,G._sfClaimPos.r,'rgba(255,60,60,.7)');
+  }
+  const sfb=document.getElementById('sfb');
+  if(sfb) sfb.style.display='none';
+  const cb=document.getElementById('btn-confirmer');
+  if(cb) cb.style.display='none';
+  G._sfClaimPos=null;
+  G._sfClaim={active:false};
+  toast(L==='ar'?'سوفلة مؤكدة ✓':'Soufla confirmée ✓',2000);
+  setTimeout(()=>{ renderBoard(); updateUI(); checkOver(); },400);
 }
 
 function checkManualSoufla(c,r){
@@ -3161,7 +3235,7 @@ function onlineCreate(){
           OL.receiving=false;
         }
       });      ch.subscribe('soufla-claim',(msg)=>{
-        toast('📨 MSG RECU connId='+(msg.data.connId||'?')+' mine='+(OL.connId||'?'), 5000);
+        console.log('SOUFLA RECV:', JSON.stringify(msg.data), 'myConnId:', OL.connId, 'pass:', !OL.connId||msg.data.connId!==OL.connId);
         if(!OL.connId||msg.data.connId!==OL.connId){
           const claimantName=msg.data.claimant==='red'?G.p1:G.p2;
           const pieceC=msg.data.pieceC, pieceR=msg.data.pieceR;
@@ -3237,21 +3311,19 @@ function onlineCreate(){
         if(!OL.connId||msg.data.connId!==OL.connId){
           // Le réclamant reçoit la confirmation — appliquer la suppression
           const c=msg.data.c, r=msg.data.r;
-          const p=G.board[r]&&G.board[r][c];
-          if(p){
-            flashCell(c,r,'rgba(255,60,60,.7)');
-            setTimeout(()=>{
-              if(G.board[r]&&G.board[r][c]) G.board[r][c]=null;
-              // Créditer la capture au réclamant
-              if(MS.claimant==='red') G.capR++; else G.capG++;
-              G.log.push('⚡ Soufla: '+cn({c,r})+' retirée');
-              MS={active:false,claimant:null,pos:null,lastTap:0,lastCell:null};
-              const sfb=document.getElementById('sfb');
-              if(sfb) sfb.style.display='none';
-              toast(L==='ar'?'سوفلة مؤكدة ✓':'Soufla confirmée ✓',2000);
-              renderBoard(); updateUI(); checkOver();
-            },380);
-          }
+          flashCell(c,r,'rgba(255,60,60,.7)');
+          setTimeout(()=>{
+            if(G.board[r]&&G.board[r][c]) G.board[r][c]=null;
+            const claimant=G._sfClaim&&G._sfClaim.claimant?G._sfClaim.claimant:'red';
+            if(claimant==='red') G.capR++; else G.capG++;
+            G.log.push('⚡ Soufla: '+cn({c,r})+' retirée');
+            G._sfClaimPos=null;
+            G._sfClaim={active:false};
+            const sfb=document.getElementById('sfb');
+            if(sfb) sfb.style.display='none';
+            toast(L==='ar'?'سوفلة مؤكدة ✓':'Soufla confirmée ✓',2000);
+            renderBoard(); updateUI(); checkOver();
+          },380);
         }
       });
             ch.subscribe('sync',(msg)=>{
@@ -3325,7 +3397,7 @@ function onlineJoin(){
         }
       });
       ch.subscribe('soufla-claim',(msg)=>{
-        toast('📨 MSG RECU connId='+(msg.data.connId||'?')+' mine='+(OL.connId||'?'), 5000);
+        console.log('SOUFLA RECV:', JSON.stringify(msg.data), 'myConnId:', OL.connId, 'pass:', !OL.connId||msg.data.connId!==OL.connId);
         if(!OL.connId||msg.data.connId!==OL.connId){
           const claimantName=msg.data.claimant==='red'?G.p1:G.p2;
           const pieceC=msg.data.pieceC, pieceR=msg.data.pieceR;
@@ -3379,21 +3451,19 @@ function onlineJoin(){
         if(!OL.connId||msg.data.connId!==OL.connId){
           // Le réclamant reçoit la confirmation — appliquer la suppression
           const c=msg.data.c, r=msg.data.r;
-          const p=G.board[r]&&G.board[r][c];
-          if(p){
-            flashCell(c,r,'rgba(255,60,60,.7)');
-            setTimeout(()=>{
-              if(G.board[r]&&G.board[r][c]) G.board[r][c]=null;
-              // Créditer la capture au réclamant
-              if(MS.claimant==='red') G.capR++; else G.capG++;
-              G.log.push('⚡ Soufla: '+cn({c,r})+' retirée');
-              MS={active:false,claimant:null,pos:null,lastTap:0,lastCell:null};
-              const sfb=document.getElementById('sfb');
-              if(sfb) sfb.style.display='none';
-              toast(L==='ar'?'سوفلة مؤكدة ✓':'Soufla confirmée ✓',2000);
-              renderBoard(); updateUI(); checkOver();
-            },380);
-          }
+          flashCell(c,r,'rgba(255,60,60,.7)');
+          setTimeout(()=>{
+            if(G.board[r]&&G.board[r][c]) G.board[r][c]=null;
+            const claimant=G._sfClaim&&G._sfClaim.claimant?G._sfClaim.claimant:'red';
+            if(claimant==='red') G.capR++; else G.capG++;
+            G.log.push('⚡ Soufla: '+cn({c,r})+' retirée');
+            G._sfClaimPos=null;
+            G._sfClaim={active:false};
+            const sfb=document.getElementById('sfb');
+            if(sfb) sfb.style.display='none';
+            toast(L==='ar'?'سوفلة مؤكدة ✓':'Soufla confirmée ✓',2000);
+            renderBoard(); updateUI(); checkOver();
+          },380);
         }
       });
       ch.subscribe('sync',(msg)=>{
@@ -3582,7 +3652,7 @@ if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
     // Service worker inline via blob
     const swCode = `
-      const CACHE = 'dhamiet-v9.4d';
+      const CACHE = 'dhamiet-v9.5';
       self.addEventListener('install', e => {
         e.waitUntil(caches.open(CACHE).then(cache => cache.addAll([location.href])));
         self.skipWaiting();
