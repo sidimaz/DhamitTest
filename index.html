@@ -201,8 +201,12 @@ body[lang="ar"] .lbar{direction:ltr;left:10px}
 /* Intersections */
 .ix{position:relative;display:flex;align-items:center;justify-content:center;
   cursor:pointer;-webkit-tap-highlight-color:transparent;
-  /* Zone tactile élargie pour mobile */
-  touch-action:manipulation}
+  touch-action:manipulation;
+  /* Zone tactile minimum pour mobile */
+  min-width:44px;min-height:44px;}
+@media(max-width:600px){
+  .ix{min-width:36px;min-height:36px;}
+}
 .ix.sel{background:radial-gradient(circle,rgba(255,215,0,.45) 0%,transparent 65%)}
 .ix.vm::before{content:'';position:absolute;width:28%;height:28%;border-radius:50%;
   background:rgba(255,215,0,.55);border:2px solid #FFD700;z-index:4;
@@ -302,6 +306,10 @@ body[lang="ar"] .lbar{direction:ltr;left:10px}
 #bsvg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 #igrid{position:absolute;inset:0;
   display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr)}
+@media(max-width:600px){
+  .piece-baton{width:70%;height:98%}
+  .piece-dung{width:85%;height:90%}
+}
 @media(max-width:600px) and (orientation:portrait){
   .glayout{flex-direction:column}
   .sp{width:100%;flex-direction:row;flex-wrap:wrap;max-height:70px;overflow:hidden;padding:4px 8px;gap:4px}
@@ -373,7 +381,7 @@ body[lang="ar"] .lbar{direction:ltr;left:10px}
       </div>
     </div>
           <button class="mbtn mbtn-dark" onclick="installPWA()" id="btn-pwa" style="display:none"><span>📲 Installer l'application</span></button>
-    <div class="ver">DHAMIÉ v1.0 • Sidimaz</div>
+    <div class="ver">DHAMIÉ v1.1 • Sidimaz</div>
   </div>
 </div>
 
@@ -1356,10 +1364,9 @@ function saveState(){
 // ============================================================
 function doMove(from, to){
   // ---- Snapshot BEFORE the move ----
-  // For each piece of current player, count how many total captures it can do (including chains)
+  // Sauvegarder SEULEMENT avant le premier coup du tour (pas pendant une chaîne)
   const killMap = buildKillMap(G.turn); // {key → maxChainLength}
-
-  saveState();
+  if(!G.chainPiece) saveState(); // Un seul snapshot par tour complet
   const cap = to.cap||null;
   execMove(from, to, cap);
   playSound(cap ? "capture" : "move");
@@ -3660,7 +3667,7 @@ if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
     // Service worker inline via blob
     const swCode = `
-      const CACHE = 'dhamiet-v1.0';
+      const CACHE = 'dhamiet-v1.1';
       self.addEventListener('install', e => {
         e.waitUntil(caches.open(CACHE).then(cache => cache.addAll([location.href])));
         self.skipWaiting();
